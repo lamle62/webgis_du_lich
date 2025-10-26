@@ -1,0 +1,231 @@
+* {
+  box-sizing: border-box; /* Đảm bảo padding/margin không làm lệch kích thước */
+}
+
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px; /* Khôi phục margin mặc định */
+  background-color: #ffffff; /* Nền trắng */
+  color: #333333; /* Văn bản tối */
+}
+
+header {
+  background-color: #007bff; /* Xanh biển */
+  color: #ffffff; /* Văn bản trắng */
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header a {
+  color: #ffffff;
+  text-decoration: none;
+  margin-left: 10px;
+}
+
+header a:hover {
+  text-decoration: underline;
+}
+
+h1, h2, h3 {
+  color: #007bff; /* Xanh biển cho tiêu đề */
+}
+
+#map {
+  height: 400px;
+  width: 100%;
+  border: 2px solid #007bff; /* Biên xanh biển */
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+#selected-places, #places-list, #itineraries-list {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #e6f7ff; /* Nền xanh biển nhẹ */
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.selected-place, .place-item {
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #ffffff; /* Nền trắng */
+  border: 1px solid #007bff; /* Biên xanh biển */
+  border-radius: 5px;
+}
+
+.selected-place button, .place-item button, button[onclick*="deleteItinerary"], form button {
+  margin-left: 10px;
+  background-color: #007bff; /* Nền xanh biển */
+  color: #ffffff; /* Văn bản trắng */
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.selected-place button:hover, .place-item button:hover, button[onclick*="deleteItinerary"]:hover, form button:hover {
+  background-color: #0056b3; /* Xanh biển tối hơn khi hover */
+}
+
+.leaflet-popup button {
+  margin-top: 5px;
+  background-color: #007bff; /* Nền xanh biển */
+  color: #ffffff; /* Văn bản trắng */
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.leaflet-popup button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.leaflet-popup button:hover:not(:disabled) {
+  background-color: #0056b3; /* Xanh biển tối hơn khi hover */
+}
+
+#itinerary-places {
+  margin-top: 10px;
+}
+
+#itinerary-places div {
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #e6f7ff; /* Nền xanh biển nhẹ */
+  border-radius: 5px;
+}
+
+form button {
+  background-color: #007bff; /* Nền xanh biển */
+  color: #ffffff; /* Văn bản trắng */
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 10px;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #0056b3; /* Xanh biển tối hơn khi hover */
+}
+
+.error {
+  color: red;
+  background-color: #ffdddd;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.itinerary-details {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #e6f7ff; /* Nền xanh biển nhẹ */
+  border-radius: 5px;
+}
+
+.place-list {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.place-item {
+  margin-bottom: 10px;
+}
+
+.edit-form {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #e6f7ff; /* Nền xanh biển nhẹ */
+  border-radius: 5px;
+}
+
+.edit-form input[type="text"] {
+  padding: 5px;
+  margin-right: 10px;
+  border: 1px solid #007bff; /* Biên xanh biển */
+  border-radius: 5px;
+}
+
+.delete-form {
+  margin-top: 20px;
+}
+
+/* Kiểu cho trang đăng nhập và đăng ký */
+.login-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Căn giữa tuyệt đối */
+  background-color: #ffffff; /* Nền trắng */
+  border: 2px solid #007bff; /* Viền xanh biển */
+  border-radius: 10px;
+  padding: 20px;
+  width: 100%;
+  max-width: 400px; /* Giới hạn chiều rộng */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Bóng nhẹ */
+  text-align: center;
+  animation: fadeIn 0.3s ease-in; /* Hiệu ứng fade-in */
+}
+
+.login-container h2 {
+  color: #007bff; /* Tiêu đề xanh biển */
+  margin-bottom: 20px;
+}
+
+.login-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Khoảng cách giữa các input */
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"],
+.login-container input[type="email"],
+.login-container input[type="tel"] {
+  padding: 8px;
+  border: 1px solid #007bff; /* Viền xanh biển */
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.login-container input:focus {
+  outline: none;
+  border-color: #0056b3; /* Xanh biển đậm khi focus */
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Hiệu ứng focus */
+}
+
+.login-container a {
+  color: #007bff; /* Link xanh biển */
+  text-decoration: none;
+}
+
+.login-container a:hover {
+  text-decoration: underline;
+}
+
+/* Hiệu ứng fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(-50%, -60%); } /* Điều chỉnh để đồng bộ với transform */
+  to { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .login-container {
+    max-width: 90%; /* Thu nhỏ trên mobile */
+    padding: 15px;
+  }
+
+  #map {
+    height: 300px;
+  }
+}

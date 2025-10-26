@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Danh sách lịch trình</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <% if (user) { %>
+    <p>Xin chào, <%= user.username %> | <a href="/">Trang chủ</a> | <a href="/user/logout">Đăng xuất</a></p>
+  <% } else { %>
+    <p><a href="/user/login">Đăng nhập</a> | <a href="/user/register">Đăng ký</a></p>
+    <p>Bạn cần đăng nhập để xem và quản lý lịch trình.</p>
+  <% } %>
+
+  <% if (user) { %>
+    <h1>Quản lý lịch trình</h1>
+    <h2>Danh sách lịch trình</h2>
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <div class="itinerary-list">
+      <% if (itineraries && itineraries.length > 0) { %>
+        <% itineraries.forEach(itinerary => { %>
+          <div class="itinerary-item">
+            <h3><a href="/itineraries/<%= itinerary.id %>"><%= itinerary.name %></a></h3>
+            <ul>
+              <% if (itinerary.places && itinerary.places.length > 0) { %>
+                <% itinerary.places.forEach(place => { %>
+                  <li><%= place.name %> (<%= place.type %>)</li>
+                <% }) %>
+              <% } else { %>
+                <li>Chưa có địa điểm nào trong lịch trình.</li>
+              <% } %>
+            </ul>
+          </div>
+        <% }) %>
+      <% } else { %>
+        <p>Chưa có lịch trình nào.</p>
+      <% } %>
+    </div>
+  <% } %>
+
+  <a href="/">Quay lại trang chủ</a>
+</body>
+</html>

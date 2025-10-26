@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="login-container">
+    <h2>Đăng nhập</h2>
+    <% if (typeof error !== "undefined" && error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <form method="POST" action="/user/login">
+      <input type="text" name="username" placeholder="Tên đăng nhập" 
+             required autocomplete="username">
+      <input type="password" name="password" placeholder="Mật khẩu" 
+             required autocomplete="current-password">
+      <button type="submit">Đăng nhập</button>
+    </form>
+
+    <p>Chưa có tài khoản? <a href="/user/register">Đăng ký</a></p>
+  </div>
+</body>
+</html>

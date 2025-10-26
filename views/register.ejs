@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng ký</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="login-container">  <!-- Sử dụng class tương tự như login để có kiểu giống nhau -->
+    <h2>Đăng ký</h2>
+    <% if (typeof error !== "undefined" && error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <form method="POST" action="/user/register">
+      <input type="text" name="username" placeholder="Tên đăng nhập" 
+             required autocomplete="username">
+
+      <input type="email" name="email" placeholder="Email" 
+             required autocomplete="email">
+
+      <input type="tel" name="phone" placeholder="Số điện thoại" 
+             required autocomplete="tel" pattern="[0-9]{10,11}" title="Số điện thoại phải có 10-11 chữ số">
+
+      <input type="password" name="password" placeholder="Mật khẩu" 
+             required autocomplete="new-password">
+
+      <input type="password" name="confirmPassword" placeholder="Nhập lại mật khẩu" 
+             required autocomplete="new-password">
+
+      <button type="submit">Đăng ký</button>
+    </form>
+
+    <p>Đã có tài khoản? <a href="/user/login">Đăng nhập</a></p>
+  </div>
+
+  <!-- Script đơn giản để kiểm tra nhập lại mật khẩu ở client-side (tùy chọn) -->
+  <script>
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+      const password = document.querySelector('input[name="password"]').value;
+      const confirmPassword = document.querySelector('input[name="confirmPassword"]').value;
+      if (password !== confirmPassword) {
+        e.preventDefault();
+        alert('Mật khẩu và nhập lại mật khẩu không khớp!');
+      }
+    });
+  </script>
+</body>
+</html>
