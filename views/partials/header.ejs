@@ -1,0 +1,41 @@
+<aside class="vertical-nav" aria-label="Primary navigation">
+	<div class="user-panel card">
+		<% if (typeof user !== 'undefined' && user) { %>
+			<div class="user-name">Xin chào, <strong><%= user.username || user.name %></strong></div>
+			<div class="small muted">
+				<a href="/user/profile">Hồ sơ</a> · <a href="/user/logout">Đăng xuất</a>
+			</div>
+		<% } else { %>
+			<div class="user-guest">Chào mừng khách</div>
+			<div style="margin-top:8px; display: flex; gap: 8px;">
+				<a href="/user/login" class="btn btn-primary">Đăng nhập</a>
+				<a href="/user/register" class="btn btn-ghost">Đăng ký</a>
+			</div>
+		<% } %>
+	</div>
+
+	<div class="filter-panel card">
+		<h3>Tìm kiếm & Lọc</h3>
+		<form id="filter-form" onsubmit="event.preventDefault(); filterPlaces(event);">
+			<select id="type-filter" name="type">
+				<option value="">-- Chọn loại --</option>
+				<option value="tourism">Địa điểm du lịch</option>
+				<option value="hotel">Khách sạn</option>
+				<option value="restaurant">Nhà hàng</option>
+			</select>
+			<input type="text" id="province-filter" name="province" placeholder="Nhập tỉnh/thành" />
+			<div style="display:flex; gap:8px; margin-top:6px;">
+				<button type="submit" class="btn btn-primary">Lọc</button>
+				<button type="button" class="btn btn-ghost" onclick="resetFilter()">Xóa bộ lọc</button>
+			</div>
+		</form>
+	</div>
+
+	<nav class="nav-links card" aria-label="Links">
+		<a class="nav-link" href="/">Trang chủ</a>
+		<a class="nav-link" href="/places">Địa điểm</a>
+		<a class="nav-link" href="/itineraries/create">Tạo lịch trình</a>
+		<a class="nav-link" href="/itineraries/page">Xem lịch trình</a>
+		<a class="nav-link" href="/about">Giới thiệu</a>
+	</nav>
+</aside>

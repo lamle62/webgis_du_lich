@@ -5,132 +5,161 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chi tiết lịch trình</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="anonymous" />
 </head>
 <body>
-  <header>
-    <% if (user) { %>
-      Xin chào, <%- user.username.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %> | 
-      <a href="/">Trang chủ</a> | 
-      <a href="/itineraries/page">Lịch trình</a> | 
-      <a href="/user/logout">Đăng xuất</a>
-    <% } else { %>
-      <a href="/user/login">Đăng nhập</a> | 
-      <a href="/user/register">Đăng ký</a>
-    <% } %>
-  </header>
+  <%- include('partials/header') %>
 
-  <% if (itinerary) { %>
-    <h1>Chi tiết lịch trình: <%- itinerary.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %></h1>
+  <div class="container">
+    <% if (itinerary) { %>
+      <h1>Chi tiết lịch trình: <%- itinerary.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %></h1>
 
-    <% if (typeof error !== 'undefined' && error) { %>
-      <p class="error"><%- error.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %></p>
-    <% } %>
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p class="error"><%- error.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %></p>
+      <% } %>
 
-    <script>
-      const userData = <%- user ? JSON.stringify(user).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : 'null' %>;
-      console.log('User variable in EJS:', userData);
-    </script>
+      <script>
+        const userData = <%- user ? JSON.stringify(user).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') : 'null' %>;
+        console.log('User variable in EJS:', userData);
+      </script>
 
-    <% if (user) { %>
-      
+      <% if (user) { %>
+        <h3>Danh sách địa điểm</h3>
+        <ol>
+          <% if (itinerary.places && itinerary.places.length > 0) { %>
+            <% itinerary.places.forEach((place, index) => { %>
+              <li>
+                <%= index + 1 %>. 
+                <%- place.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>
+                - Thời gian: <%= place.time ? new Date(place.time).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) : 'Chưa đặt thời gian' %>
+                <form action="/itineraries/<%= itinerary.id %>/remove-place" method="POST" style="display:inline;">
+                  <input type="hidden" name="placeId" value="<%= place.id %>">
+                  <button type="submit">Xóa</button>
+                </form>
+              </li>
+            <% }); %>
+          <% } else { %>
+            <li>Chưa có địa điểm nào trong lịch trình.</li>
+          <% } %>
+        </ol>
 
-      <h3>Danh sách địa điểm</h3>
-<ul>
-  <% if (itinerary.places && itinerary.places.length > 0) { %>
-    <% itinerary.places.forEach(place => { %>
-      <li>
-        <%- place.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %> (<%- (place.type || 'Unknown').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>)
-      </li>
-    <% }); %>
-  <% } else { %>
-    <li>Chưa có địa điểm nào trong lịch trình.</li>
-  <% } %>
-</ul>
+        <div>
+          <button id="toggle-edit-form-btn">Sửa lịch trình</button>
+          <div id="editForm" style="display: none;">
+            <form id="edit-itinerary-form" action="/itineraries/<%= itinerary.id %>/edit" method="POST">
+              <label>Sửa tên lịch trình</label>
+              <input type="text" name="name" value="<%- itinerary.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>" required>
 
-      <div>
-        <h3>Chỉnh sửa lịch trình</h3>
-        <button id="toggle-edit-form-btn">Sửa lịch trình</button>
-        <div id="editForm" style="display: none;">
-          <form id="edit-itinerary-form" action="/itineraries/<%= itinerary.id %>/edit" method="POST">
-            <label>Sửa tên lịch trình</label>
-            <input type="text" name="name" value="<%- itinerary.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>" required>
+              <h4>Danh sách địa điểm hiện tại</h4>
+              <ul id="editPlaceList">
+                <% if (itinerary.places && itinerary.places.length > 0) { %>
+                  <% itinerary.places.forEach(place => { %>
+                    <li class="edit-place-item" data-place-id="<%= place.id %>" data-place-time="<%= place.time || '' %>">
+                      <%- place.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %> 
+                      (<%- (place.type || 'Unknown').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>)
+                      <input type="datetime-local" value="<%= place.time ? new Date(place.time).toISOString().slice(0, 16) : '' %>">
+                      <button type="button" onclick="removePlaceFromEdit(<%= place.id %>)">Xóa</button>
+                    </li>
+                  <% }); %>
+                <% } else { %>
+                  <li>Chưa có địa điểm nào.</li>
+                <% } %>
+              </ul>
 
-            <h4>Danh sách địa điểm hiện tại</h4>
-            <ul id="editPlaceList">
-              <% if (itinerary.places && itinerary.places.length > 0) { %>
-                <% itinerary.places.forEach(place => { %>
-                   <li class="edit-place-item" data-place-id="<%= place.id %>">
-                    <%- place.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %> (<%- (place.type || 'Unknown').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;') %>)
-                    <button type="button" onclick="removePlaceFromEdit(<%= place.id %>)">Xóa</button>
-                   </li>
-                <% }); %>
-              <% } else { %>
-                 <li>Chưa có địa điểm nào.</li>
-              <% } %>
-            </ul>
+              <h4>Thêm địa điểm mới</h4>
+              <select id="addPlaceSelect">
+                <option value="">Chọn địa điểm</option>
+              </select>
+              <input type="datetime-local" id="newPlaceTime" placeholder="Thời gian ghé thăm">
+              <button type="button" onclick="addPlaceToEdit()">Thêm</button>
 
-            <h4>Thêm địa điểm mới</h4>
-            <select id="addPlaceSelect">
-              <option value="">Chọn địa điểm</option>
-            </select>
-            <button type="button" onclick="addPlaceToEdit()">Thêm</button>
-
-            <input type="hidden" name="places" id="editPlacesInput" value="<%= itinerary.places ? itinerary.places.join(',') : '' %>">
-            <button type="submit">Lưu thay đổi</button>
-          </form>
+              <input type="hidden" name="places" id="editPlacesInput">
+              <button type="submit">Lưu thay đổi</button>
+            </form>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <h3>Xóa lịch trình</h3>
-        <button id="delete-itinerary-btn" data-itinerary-id="<%= itinerary.id %>">Xóa lịch trình</button>
-      </div>
+        <div>
+          <button id="delete-itinerary-btn" data-itinerary-id="<%= itinerary.id %>">Xóa lịch trình</button>
+        </div>
+      <% } else { %>
+        <p>Bạn cần đăng nhập để xem chi tiết lịch trình.</p>
+      <% } %>
+
+      <a href="/itineraries/page">Quay lại danh sách lịch trình</a>
     <% } else { %>
-      <p>Bạn cần đăng nhập để xem chi tiết lịch trình.</p>
+      <p>Không tìm thấy lịch trình.</p>
+      <a href="/itineraries/page">Quay lại danh sách lịch trình</a>
     <% } %>
+  </div> <!-- /.container -->
 
-    <a href="/itineraries/page">Quay lại danh sách lịch trình</a>
-  <% } else { %>
-    <p>Không tìm thấy lịch trình.</p>
-    <a href="/itineraries/page">Quay lại danh sách lịch trình</a>
-  <% } %>
-
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha512-Dq+bfVq3Z1K6D37ZJ0sFVSYuchO99+daB1ZojGSz2GaIQVREMF3uA2a7gLmqK5F3O6x0yOwx34V7nScE5/PMkOg==" crossorigin="anonymous"></script>
   <script src="/js/main.js" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Gắn sự kiện cho nút "Sửa lịch trình"
-      const toggleEditFormBtn = document.getElementById('toggle-edit-form-btn');
-      if (toggleEditFormBtn) {
-        toggleEditFormBtn.addEventListener('click', () => {
-          if (typeof toggleEditForm === 'function') {
-            toggleEditForm();
-          } else {
-            console.error('toggleEditForm is not defined');
-            alert('Lỗi: Không thể mở form chỉnh sửa. Vui lòng thử lại.');
-          }
-        });
-      } else {
-        console.warn('Toggle edit form button not found');
-      }
+    // Gắn sự kiện cho nút "Sửa lịch trình"
+    const toggleEditFormBtn = document.getElementById('toggle-edit-form-btn');
+    if (toggleEditFormBtn) {
+      toggleEditFormBtn.addEventListener('click', () => {
+        if (typeof toggleEditForm === 'function') {
+          toggleEditForm();
+        } else {
+          console.error('toggleEditForm is not defined');
+          alert('Lỗi: Không thể mở form chỉnh sửa. Vui lòng thử lại.');
+        }
+      });
+    }
 
-      // Gắn sự kiện cho nút "Xóa lịch trình"
-      const deleteItineraryBtn = document.getElementById('delete-itinerary-btn');
-      if (deleteItineraryBtn) {
-        const itineraryId = deleteItineraryBtn.dataset.itineraryId;
-        deleteItineraryBtn.addEventListener('click', () => {
-          if (typeof deleteItinerary === 'function') {
-            deleteItinerary(parseInt(itineraryId));
-          } else {
-            console.error('deleteItinerary is not defined');
-            alert('Lỗi: Không thể xóa lịch trình. Vui lòng thử lại.');
-          }
-        });
-      } else {
-        console.warn('Delete itinerary button not found');
-      }
+    // Gắn sự kiện cho nút "Xóa lịch trình"
+    const deleteItineraryBtn = document.getElementById('delete-itinerary-btn');
+    if (deleteItineraryBtn) {
+      const itineraryId = deleteItineraryBtn.dataset.itineraryId;
+      deleteItineraryBtn.addEventListener('click', () => {
+        if (typeof deleteItinerary === 'function') {
+          deleteItinerary(parseInt(itineraryId));
+        } else {
+          console.error('deleteItinerary is not defined');
+          alert('Lỗi: Không thể xóa lịch trình. Vui lòng thử lại.');
+        }
+      });
+    }
+
+    // Gắn sự kiện submit cho form chỉnh sửa
+    const editForm = document.getElementById('edit-itinerary-form');
+    if (editForm) {
+      editForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nameInput = editForm.querySelector('input[name="name"]');
+        const placesInput = editForm.querySelector('input[name="places"]');
+        const name = nameInput.value.trim();
+        let places = placesInput.value ? JSON.parse(placesInput.value) : [];
+        if (!name) {
+          alert('Vui lòng nhập tên lịch trình');
+          return;
+        }
+        if (!Array.isArray(places) || places.length === 0) {
+          alert('Vui lòng chọn ít nhất một địa điểm');
+          return;
+        }
+        if (places.some(p => !p.time)) {
+          alert('Vui lòng nhập thời gian cho tất cả địa điểm');
+          return;
+        }
+        editForm.submit();
+      });
+    }
+
+    // GẮN SỰ KIỆN onchange QUA JS (an toàn hơn)
+    document.querySelectorAll('.edit-place-item input[type="datetime-local"]').forEach(input => {
+      input.addEventListener('change', function() {
+        const placeId = parseInt(this.closest('.edit-place-item').dataset.placeId);
+        const time = this.value;
+        if (typeof window.updatePlaceTimeInEdit === 'function') {
+          window.updatePlaceTimeInEdit(placeId, time);
+        } else {
+          console.error('window.updatePlaceTimeInEdit chưa sẵn sàng');
+        }
+      });
     });
+  });
   </script>
 </body>
 </html>

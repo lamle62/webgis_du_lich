@@ -8,93 +8,27 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="anonymous" />
 </head>
 <body>
-  <header>
+  <%- include('partials/header') %>
+
+  <div class="container">
+    <h1>WebGIS Du lịch</h1>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
     <% if (user) { %>
-      Xin chào, <%= user.username %> |
-      <a href="/itineraries/page">Lịch trình</a> |
-      <a href="/user/logout">Đăng xuất</a>
+      <div id="map" style="height: calc(100vh - 180px); width: 100%; border-radius: 12px; margin-top: 16px;"></div>
     <% } else { %>
-      <a href="/user/login">Đăng nhập</a> |
-      <a href="/user/register">Đăng ký</a>
-    <% } %>
-  </header>
-
-  <h1>WebGIS Du lịch</h1>
-
-  <% if (typeof error !== 'undefined' && error) { %>
-    <p class="error"><%= error %></p>
-  <% } %>
-
-  <!-- Debug user variable with proper escaping -->
-  <script>
-    const userData = <%- user ? JSON.stringify(user).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;') : 'null' %>;
-    console.log('User variable in EJS:', userData);
-  </script>
-
-  <% if (user) { %>
-    <div id="map" style="height: 400px; width: 100%;"></div>
-
-    <div>
-      <h3>Lọc địa điểm</h3>
-      <form id="filter-form" onsubmit="event.preventDefault(); filterPlaces(event);">
-        <select id="type-filter" name="type">
-          <option value="">-- Chọn loại --</option>
-          <option value="tourism">Địa điểm du lịch</option>
-          <option value="hotel">Khách sạn</option>
-          <option value="restaurant">Nhà hàng</option>
-        </select>
-        <input type="text" id="province-filter" name="province" placeholder="Nhập tỉnh/thành">
-        <button type="submit">Lọc</button>
-        <button type="button" onclick="resetFilter()">Xóa bộ lọc</button> <!-- Thêm nút reset -->
-      </form>
-    </div>
-
-    <div>
-      <h3>Tạo lịch trình mới</h3>
-      <form id="create-itinerary-form" action="/itineraries" method="POST">
-        <input type="text" name="name" placeholder="Tên lịch trình" required>
-        <input type="hidden" name="places" id="selected-places-input">
-        <button type="submit">Tạo lịch trình</button>
-      </form>
-
-      <h3>Địa điểm đã chọn</h3>
-      <div id="selected-places">
-        <p>Chưa chọn địa điểm nào.</p>
+      <div class="card" style="text-align: center; padding: 32px; margin-top: 16px;">
+        <p style="color: var(--muted); margin-bottom: 16px;">Bạn cần đăng nhập để xem bản đồ và tạo lịch trình.</p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <a href="/user/login" class="btn btn-primary">Đăng nhập</a>
+          <a href="/user/register" class="btn btn-ghost">Đăng ký</a>
+        </div>
       </div>
-    </div>
-  <% } else { %>
-    <p>Bạn cần đăng nhập để tạo lịch trình.</p>
-  <% } %>
-
-  <h2>Danh sách địa điểm</h2>
-  <div id="places-list">
-    <% if (places && places.length > 0) { %>
-      <% places.forEach(place => { %>
-        <div>
-          <%= place.name %> - <%= place.province %>
-          <% if (user) { %>
-            <button onclick="addPlaceToItinerary(<%= place.id %>, '<%- place.name.replace(/'/g, "\\'") %>')">Chọn</button>
-          <% } %>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <p>Chưa có địa điểm nào.</p>
     <% } %>
   </div>
-
-  <h2>Danh sách lịch trình</h2>
-  <div id="itineraries-list">
-    <% if (itineraries && itineraries.length > 0) { %>
-      <% itineraries.forEach(itinerary => { %>
-        <div>
-          <a href="/itineraries/<%= itinerary.id %>"><%= itinerary.name %></a>
-        </div>
-      <% }); %>
-    <% } else { %>
-      <p>Chưa có lịch trình nào.</p>
-    <% } %>
-  </div>
-
 
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="/js/main.js" defer></script>

@@ -31,6 +31,11 @@ router.get('/page', async (req, res) => {
     }
 });
 
+// Render create itinerary form
+router.get('/create', itineraryController.renderCreateForm);
+// Handle create itinerary form submission
+router.post('/create', itineraryController.createItineraryFromForm);
+
 
 router.get('/:id', itineraryController.getItineraryById);
 router.post('/', itineraryController.createItinerary);

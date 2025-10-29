@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tạo lịch trình mới</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="anonymous" />
+</head>
+<body>
+  <%- include('partials/header') %>
+
+  <div class="container">
+    <h1>Tạo lịch trình mới</h1>
+
+    <% if (typeof error !== 'undefined' && error) { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+
+    <!-- BẢN ĐỒ -->
+    <div id="map" style="height: 400px; width: 100%; margin-bottom: 12px;"></div>
+
+    <!-- FORM TẠO LỊCH TRÌNH -->
+    <form id="create-itinerary-form" action="/itineraries/create" method="POST">
+      <input type="text" name="name" placeholder="Tên lịch trình" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+      
+      <!-- Hidden input – ĐÚNG ID -->
+      <input type="hidden" name="places" id="selectedPlacesInput">
+
+      <div style="margin-bottom: 12px;">
+        <button type="submit" class="btn btn-primary">Tạo lịch trình</button>
+        <a href="/itineraries/page" class="btn btn-ghost">Hủy</a>
+      </div>
+    </form>
+
+    <!-- DANH SÁCH ĐÃ CHỌN – ĐÚNG ID -->
+    <h3 style="margin-top:16px;">Địa điểm đã chọn</h3>
+    <div id="selected-places-container" style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; min-height: 50px;">
+      <p style="color: #666; font-style: italic; margin: 0;">Chưa chọn địa điểm nào.</p>
+    </div>
+
+    <!-- DANH SÁCH TẤT CẢ ĐỊA ĐIỂM -->
+    <h2 style="margin-top:18px;">Danh sách địa điểm</h2>
+    <div id="places-list">
+      <% if (places && places.length > 0) { %>
+        <% places.forEach(place => { %>
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
+            <div>
+              <strong><%= place.name %></strong> - <%= place.province %>
+            </div>
+            <button type="button" 
+                    onclick="addPlaceToItinerary(<%= place.id %>, '<%- place.name.replace(/'/g, "\\'") %>')" 
+                    class="btn btn-primary" 
+                    style="font-size: 0.9em;">
+              Chọn
+            </button>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p>Chưa có địa điểm nào.</p>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin="anonymous"></script>
+  <script src="/js/main.js" defer></script>
+
+  <!-- ĐẢM BẢO ĐỒNG BỘ DỮ LIỆU KHI SUBMIT -->
+  <script>
+    document.getElementById('create-itinerary-form')?.addEventListener('submit', function () {
+      if (typeof syncSelectedPlacesToInput === 'function') {
+        syncSelectedPlacesToInput();
+      }
+    });
+  </script>
+</body>
+</html>

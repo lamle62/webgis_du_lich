@@ -1,45 +1,71 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Danh sách lịch trình</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
 <body>
-  <% if (user) { %>
-    <p>Xin chào, <%= user.username %> | <a href="/">Trang chủ</a> | <a href="/user/logout">Đăng xuất</a></p>
-  <% } else { %>
-    <p><a href="/user/login">Đăng nhập</a> | <a href="/user/register">Đăng ký</a></p>
-    <p>Bạn cần đăng nhập để xem và quản lý lịch trình.</p>
-  <% } %>
+  <%- include('partials/header') %>
 
-  <% if (user) { %>
-    <h1>Quản lý lịch trình</h1>
-    <h2>Danh sách lịch trình</h2>
-    <% if (typeof error !== 'undefined' && error) { %>
-      <p class="error"><%= error %></p>
-    <% } %>
-    <div class="itinerary-list">
-      <% if (itineraries && itineraries.length > 0) { %>
-        <% itineraries.forEach(itinerary => { %>
-          <div class="itinerary-item">
-            <h3><a href="/itineraries/<%= itinerary.id %>"><%= itinerary.name %></a></h3>
-            <ul>
-              <% if (itinerary.places && itinerary.places.length > 0) { %>
-                <% itinerary.places.forEach(place => { %>
-                  <li><%= place.name %> (<%= place.type %>)</li>
-                <% }) %>
-              <% } else { %>
-                <li>Chưa có địa điểm nào trong lịch trình.</li>
-              <% } %>
-            </ul>
-          </div>
-        <% }) %>
-      <% } else { %>
-        <p>Chưa có lịch trình nào.</p>
+  <div class="container">
+    <% if (user) { %>
+      <h1>Quản lý lịch trình</h1>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+        <p class="error"><%= error %></p>
       <% } %>
-    </div>
-  <% } %>
 
-  <a href="/">Quay lại trang chủ</a>
+      <h2>Danh sách lịch trình</h2>
+
+      <div class="itinerary-list">
+        <% if (itineraries && itineraries.length > 0) { %>
+          <% itineraries.forEach(itinerary => { %>
+            <div class="itinerary-item card">
+              <h3>
+                <a href="/itineraries/<%= itinerary.id %>" class="nav-link" style="display: inline; padding: 0; background: none;">
+                  <%= itinerary.name %>
+                </a>
+              </h3>
+              <p style="margin: 4px 0; color: var(--muted); font-size: 0.9em;">
+                <%= itinerary.places?.length || 0 %> địa điểm
+              </p>
+              <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 0.9em;">
+                <% if (itinerary.places && itinerary.places.length > 0) { %>
+                  <% itinerary.places.slice(0, 3).forEach(place => { %>
+                    <li>
+                      <%= place.name %> <em style="color: var(--muted);">(<%= place.type || 'Không xác định' %>)</em>
+                    </li>
+                  <% }) %>
+                  <% if (itinerary.places.length > 3) { %>
+                    <li style="font-style: italic; color: var(--muted);">
+                      ... và <%= itinerary.places.length - 3 %> địa điểm khác
+                    </li>
+                  <% } %>
+                <% } else { %>
+                  <li style="color: var(--muted); font-style: italic;">Chưa có địa điểm nào.</li>
+                <% } %>
+              </ul>
+            </div>
+          <% }) %>
+        <% } else { %>
+          <div class="card" style="text-align: center; padding: 32px;">
+            <p style="color: var(--muted); margin-bottom: 16px;">Chưa có lịch trình nào.</p>
+            <a href="/itineraries/create" class="btn btn-primary">Tạo lịch trình đầu tiên</a>
+          </div>
+        <% } %>
+      </div>
+
+      <div style="margin-top: 24px; text-align: center;">
+        <a href="/" class="btn btn-ghost">Quay lại trang chủ</a>
+      </div>
+    <% } else { %>
+      <div class="card" style="text-align: center; padding: 40px;">
+        <p style="color: var(--muted); margin-bottom: 16px;">Bạn cần đăng nhập để xem danh sách lịch trình.</p>
+        <a href="/user/login" class="btn btn-primary">Đăng nhập ngay</a>
+      </div>
+    <% } %>
+  </div>
 </body>
 </html>

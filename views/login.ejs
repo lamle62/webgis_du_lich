@@ -6,7 +6,8 @@
   <title>Đăng nhập</title>
   <link rel="stylesheet" href="/css/styles.css">
 </head>
-<body>
+<body class="auth-page">
+  <div class="modal-backdrop">
   <div class="login-container">
     <h2>Đăng nhập</h2>
     <% if (typeof error !== "undefined" && error) { %>
@@ -23,5 +24,6 @@
 
     <p>Chưa có tài khoản? <a href="/user/register">Đăng ký</a></p>
   </div>
+</div>
 </body>
 </html>
