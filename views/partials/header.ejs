@@ -14,6 +14,7 @@
 		<% } %>
 	</div>
 
+	<!-- Ẩn filter-panel khi ở trang index -->
 	<div class="filter-panel card">
 		<h3>Tìm kiếm & Lọc</h3>
 		<form id="filter-form" onsubmit="event.preventDefault(); filterPlaces(event);">
@@ -32,10 +33,10 @@
 	</div>
 
 	<nav class="nav-links card" aria-label="Links">
-		<a class="nav-link" href="/">Trang chủ</a>
-		<a class="nav-link" href="/places">Địa điểm</a>
-		<a class="nav-link" href="/itineraries/create">Tạo lịch trình</a>
-		<a class="nav-link" href="/itineraries/page">Xem lịch trình</a>
-		<a class="nav-link" href="/about">Giới thiệu</a>
+		<a class="nav-link <%= ['/', '/home'].includes(fullPath) ? 'active' : '' %>" href="/">Trang chủ</a>
+		<a class="nav-link <%= fullPath === '/places' ? 'active' : '' %>" href="/places">Địa điểm</a>
+		<a class="nav-link <%= fullPath === '/itineraries/create' ? 'active' : '' %>" href="/itineraries/create">Tạo lịch trình</a>
+		<a class="nav-link <%= fullPath === '/itineraries/page' ? 'active' : '' %>" href="/itineraries/page">Xem lịch trình</a>
+		<a class="nav-link <%= fullPath === '/about' ? 'active' : '' %>" href="/about">Giới thiệu</a>
 	</nav>
 </aside>

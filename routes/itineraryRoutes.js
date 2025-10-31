@@ -40,7 +40,8 @@ router.post('/create', itineraryController.createItineraryFromForm);
 router.get('/:id', itineraryController.getItineraryById);
 router.post('/', itineraryController.createItinerary);
 router.post('/:id/edit', itineraryController.updateItinerary);
-router.post('/:id/delete', itineraryController.deleteItinerary);
+// Use RESTful DELETE /:id for deleting itineraries
+router.delete('/:id', itineraryController.deleteItinerary);
 router.post('/:id/remove-place', itineraryController.removePlaceFromItinerary);
 
 module.exports = router;

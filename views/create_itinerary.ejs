@@ -16,13 +16,15 @@
     <% if (typeof error !== 'undefined' && error) { %>
       <p class="error"><%= error %></p>
     <% } %>
-
+    
     <!-- BẢN ĐỒ -->
     <div id="map" style="height: 400px; width: 100%; margin-bottom: 12px;"></div>
+    
 
     <!-- FORM TẠO LỊCH TRÌNH -->
     <form id="create-itinerary-form" action="/itineraries/create" method="POST">
-      <input type="text" name="name" placeholder="Tên lịch trình" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+      <input type="text" name="name" placeholder="Tên lịch trình" required 
+             style="width: 100%; padding: 8px; margin-bottom: 10px;">
       
       <!-- Hidden input – ĐÚNG ID -->
       <input type="hidden" name="places" id="selectedPlacesInput">
@@ -35,7 +37,8 @@
 
     <!-- DANH SÁCH ĐÃ CHỌN – ĐÚNG ID -->
     <h3 style="margin-top:16px;">Địa điểm đã chọn</h3>
-    <div id="selected-places-container" style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; min-height: 50px;">
+    <div id="selected-places-container" 
+         style="margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; background: #f9f9f9; min-height: 50px;">
       <p style="color: #666; font-style: italic; margin: 0;">Chưa chọn địa điểm nào.</p>
     </div>
 
@@ -44,7 +47,9 @@
     <div id="places-list">
       <% if (places && places.length > 0) { %>
         <% places.forEach(place => { %>
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
+          <!-- THÊM data-type ĐỂ LỌC -->
+          <div data-type="<%= place.type %>" 
+               style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eee;">
             <div>
               <strong><%= place.name %></strong> - <%= place.province %>
             </div>
@@ -62,16 +67,35 @@
     </div>
   </div>
 
+  <!-- DỮ LIỆU ĐỊA ĐIỂM TỪ SERVER -->
+  <script>
+    const places = <%- JSON.stringify(places) %>;
+    window.currentUser = <%- JSON.stringify(user || null) %>;
+  </script>
+
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin="anonymous"></script>
   <script src="/js/main.js" defer></script>
 
-  <!-- ĐẢM BẢO ĐỒNG BỘ DỮ LIỆU KHI SUBMIT -->
+  <!-- ĐỒNG BỘ KHI SUBMIT -->
   <script>
     document.getElementById('create-itinerary-form')?.addEventListener('submit', function () {
       if (typeof syncSelectedPlacesToInput === 'function') {
         syncSelectedPlacesToInput();
       }
+    });
+  </script>
+
+  <!-- ÁP DỤNG BỘ LỌC SAU KHI BẢN ĐỒ LOAD XONG -->
+  <script>
+    // Gọi filterPlaces() sau khi main.js load xong
+    document.addEventListener('DOMContentLoaded', () => {
+      const checkMapLoaded = setInterval(() => {
+        if (window.map && window.markersLayer) {
+          clearInterval(checkMapLoaded);
+          setTimeout(() => filterPlaces(), 100); // Đảm bảo marker đã thêm
+        }
+      }, 50);
     });
   </script>
 </body>

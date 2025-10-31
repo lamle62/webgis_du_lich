@@ -5,32 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WebGIS Du lịch</title>
   <link rel="stylesheet" href="/css/styles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="anonymous" />
 </head>
-<body>
-  <%- include('partials/header') %>
-
-  <div class="container">
-    <h1>WebGIS Du lịch</h1>
-
-    <% if (typeof error !== 'undefined' && error) { %>
-      <p class="error"><%= error %></p>
-    <% } %>
-
-    <% if (user) { %>
-      <div id="map" style="height: calc(100vh - 180px); width: 100%; border-radius: 12px; margin-top: 16px;"></div>
-    <% } else { %>
-      <div class="card" style="text-align: center; padding: 32px; margin-top: 16px;">
-        <p style="color: var(--muted); margin-bottom: 16px;">Bạn cần đăng nhập để xem bản đồ và tạo lịch trình.</p>
-        <div style="display: flex; gap: 12px; justify-content: center;">
-          <a href="/user/login" class="btn btn-primary">Đăng nhập</a>
-          <a href="/user/register" class="btn btn-ghost">Đăng ký</a>
-        </div>
+<body class="home-index">
+  <!-- Top header moved from home -> show brand + auth buttons here -->
+  <div class="top-header">
+    <div class="top-header-inner container">
+      <div class="auth-actions">
+        <a href="/user/login" class="btn btn-primary">Đăng nhập</a>
+        <a href="/user/register" class="btn btn-ghost">Đăng ký</a>
       </div>
-    <% } %>
+
+      <div class="brand" style="margin-left:12px;">
+        <div class="logo"></div>
+        <h1>Khám phá Việt Nam cùng WebGIS Du lịch</h1>
+      </div>
+    </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin="anonymous"></script>
-  <script src="/js/main.js" defer></script>
+  <div class="hero-full">
+    <iframe
+      src="https://www.youtube.com/embed/tgbNymZ7vqY"
+      title="Video quảng bá du lịch Việt Nam"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen></iframe>
+  </div>
 </body>
 </html>

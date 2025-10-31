@@ -10,6 +10,7 @@
   --bg: #f7fbff;
   --card: #ffffff;
   --primary: #0d6efd; /* bright blue */
+  --top-header-height: 64px;
   --primary-600: #0b5ed7;
   --muted: #6c757d;
   --accent: #20c997; /* fresh green accent */
@@ -306,6 +307,44 @@ body.auth-page {
   header { flex-direction: column; align-items: flex-start; gap:12px; }
   .brand h1 { font-size: 16px; }
   #map { height: 320px; }
+  .top-header-inner { flex-direction: column; align-items: flex-start; }
+}
+
+/* Full-width hero wrapper so iframe/video spans the full viewport width */
+.hero-full {
+  width: calc(100vw - 24px); /* leave 12px gap each side */
+  margin-left: calc(50% - 50vw + 12px);
+  margin-right: calc(50% - 50vw + 12px);
+  overflow: hidden;
+  border-radius: 12px;
+}
+.hero-full iframe {
+  width: 100%;
+  /* Use intrinsic 16:9 aspect ratio so iframe scales to laptop widths naturally */
+  aspect-ratio: 16 / 9;
+  height: auto;
+  /* Ensure iframe never exceeds viewport height minus header + small padding to avoid vertical scroll */
+  max-height: min(720px, calc(100vh - var(--top-header-height) - 24px));
+  border: none;
+  border-radius: 12px; /* keep rounded corners matching container */
+}
+
+/* Make vertical/portrait screens use nearly-full viewport height minus header */
+@media (max-width: 820px) {
+  .hero-full iframe {
+    /* Fill almost entire viewport on portrait screens, leaving ~10px gap */
+    height: calc(100vh - 10px);
+    max-height: none;
+  }
+  /* Make sure the hero container sits below the header visually */
+  .hero-full { margin-top: 10px; }
+}
+
+/* Frosted blur background effect behind the hero area */
+.hero-full {
+  background: rgba(255,255,255,0.25);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 
 /* Small utility tweaks */
@@ -405,4 +444,75 @@ ol li button {
 ol li button:hover {
   background-color: #cc0000;
 }
+
+/* Itinerary actions row styling */
+.itinerary-actions { display: flex; gap: 12px; align-items: center; }
+.itinerary-actions .btn { padding: 8px 14px; border-radius: 8px; font-weight: 600; }
+.itinerary-actions .btn-ghost { background: transparent; color: var(--primary-600); border: 1px solid rgba(13,110,253,0.06); }
+.itinerary-actions .btn-danger { background: linear-gradient(90deg,var(--danger), #b02a37); color: white; }
+.itinerary-actions .btn:hover { filter: brightness(0.95); }
+
+
+/* Tùy chỉnh phần video du lịch */
+.video-wrapper {
+  position: relative;
+  padding-bottom: 56.25%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(12, 13, 26, 0.08);
+  margin-top: 20px;
+}
+
+.video-wrapper iframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 12px;
+}
+
+/* Hide filter panel in vertical nav when body has the shared no-filter class */
+body.no-filter .vertical-nav .filter-panel {
+  display: none !important;
+}
+
+/* Adjust spacing when filter is hidden to keep layout balanced */
+@media (min-width: 821px) {
+  /* Use nav width 260px and provide a comfortable margin for content */
+  body.no-filter .vertical-nav { width: 260px; }
+  body.no-filter .container { margin-left: 320px; }
+}
+
+/* On the home page we show a top header bar; hide the vertical nav's user-panel to avoid duplication */
+body.home-page .vertical-nav .user-panel {
+  display: none !important;
+}
+
+/* Top header used on home page */
+.top-header {
+  background: linear-gradient(90deg, rgba(11,94,215,0.06), rgba(32,201,151,0.04));
+  border-radius: 10px;
+  margin: 18px auto 0 auto;
+  padding: 12px 12px; /* 12px gap from viewport edges */
+  min-height: var(--top-header-height);
+  box-shadow: 0 6px 18px rgba(2,6,23,0.04);
+}
+.top-header { overflow: visible; }
+.top-header-inner { display:flex; align-items:center; gap:12px; justify-content:flex-start; width:100%; max-width:1200px; margin:0 auto; }
+.top-header .auth-actions { display:flex; gap:8px; align-items:center; margin-right: 12px; margin-left: 0; }
+.top-header .auth-actions .btn { padding:6px 10px; font-size:14px; }
+.top-header .brand { display:flex; align-items:center; gap:12px; }
+.top-header .brand h1 { font-size:20px; margin:0; color:var(--primary-600); }
+.top-header .container { padding-left: 12px; padding-right: 12px; }
+
+.nav-link.active {
+  color: var(--primary);
+  font-weight: 600;
+  background: rgba(13, 110, 253, 0.1);
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+
 

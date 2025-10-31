@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Home - WebGIS Du lịch</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" crossorigin="anonymous" />
+</head>
+<body class="no-filter">
+  <!-- ✅ include header ở mọi trang trừ index -->
+  <%- include('partials/header') %>
+  <div class="container">
+    <h2>Xin chào, <%= user.username || user.name %>!</h2>
+    <div id="map" style="height: 500px; border-radius: 12px; margin-top: 16px;"></div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" crossorigin="anonymous"></script>
+  <!-- main.js sẽ tự khởi tạo bản đồ và tải địa điểm khi DOM sẵn sàng -->
+  <script src="/js/main.js" defer></script>
+</body>
+</html>
