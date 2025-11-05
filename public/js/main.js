@@ -3,32 +3,39 @@ let markersLayer = null;
 let selectedPlaces = [];
 let placesData = {};
 
-const icons = {
-  tourism: L.icon({
-    iconUrl: '/images/icons/tourism.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -30]
-  }),
-  restaurant: L.icon({
-    iconUrl: '/images/icons/restaurant.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -30]
-  }),
-  hotel: L.icon({
-    iconUrl: '/images/icons/hotel.png',
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -30]
-  }),
-  default: L.icon({
-    iconUrl: '/images/icons/default.png',
-    iconSize: [28, 28],
-    iconAnchor: [14, 28],
-    popupAnchor: [0, -25]
-  })
-};
+// 🛡️ Khởi tạo icon chỉ khi có Leaflet
+let icons = {};
+if (typeof L !== 'undefined') {
+  icons = {
+    tourism: L.icon({
+      iconUrl: '/images/icons/tourism.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -30]
+    }),
+    restaurant: L.icon({
+      iconUrl: '/images/icons/restaurant.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -30]
+    }),
+    hotel: L.icon({
+      iconUrl: '/images/icons/hotel.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -30]
+    }),
+    default: L.icon({
+      iconUrl: '/images/icons/default.png',
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -25]
+    })
+  };
+} else {
+  console.warn('[main.js] Leaflet not loaded — icons disabled (normal on non-map pages)');
+}
+
 
 /*  1. HÀM CÔNG CỤ (utility)                                    */
 const log = (msg, ...args) => console.log(`[main.js] ${msg}`, ...args);
@@ -43,9 +50,15 @@ function checkLoginStatus() {
 
 /*  3. KHỞI TẠO BẢN ĐỒ (chỉ 1 lần)                              */
 function initializeMap() {
+  // 🛡️ Nếu thư viện Leaflet chưa load, bỏ qua hoàn toàn
+  if (typeof L === 'undefined') {
+    log('Leaflet not loaded — skip map initialization (normal on non-map pages)');
+    return false;
+  }
+
   const mapDiv = document.getElementById('map');
   if (!mapDiv) {
-    log('Map div not found – skipped (normal on non-map pages)');
+    log('Map div not found — skipped (normal on non-map pages)');
     return false;
   }
 
@@ -59,6 +72,7 @@ function initializeMap() {
   log('Map & markersLayer initialized');
   return true;
 }
+
 
 /*  4. TẢI DỮ LIỆU ĐỊA ĐIỂM (GeoJSON)                           */
 async function loadPlacesData() {
@@ -341,10 +355,63 @@ window.filterPlaces = function () {
   const province = document.getElementById('province-filter')?.value.trim().toLowerCase() || '';
   const placeItems = document.querySelectorAll('#places-list > div');
 
-  if (placeItems.length === 0) {
-    log('No #places-list found → skip filter');
-    return;
+   if (placeItems.length > 0) {
+    placeItems.forEach(item => {
+      const provinceText = item.textContent.toLowerCase();
+      const placeType = item.dataset.type || '';
+      const matchType = !type || placeType === type;
+      const matchProvince = !province || provinceText.includes(province);
+      item.style.display = matchType && matchProvince ? 'flex' : 'none';
+    });
   }
+
+  // Luôn lọc marker trên bản đồ
+  if (map && markersLayer && Object.keys(placesData).length > 0) {
+    markersLayer.clearLayers();
+    Object.values(placesData).forEach(p => {
+      const matchType = !type || (p.type && p.type.toLowerCase() === type.toLowerCase());
+      const matchProvince = !province || (p.province && p.province.toLowerCase().includes(province));
+      if (!matchType || !matchProvince) return;
+
+      const [lng, lat] = p.coordinates || [];
+      if (!lat || !lng) return;
+
+      const iconType = icons[p.type?.toLowerCase()] || icons.default;
+      const description = p.description || 'Không có mô tả';
+      const imageUrl = p.image_url ? p.image_url : null;
+      let imageHtml = '';
+
+      if (imageUrl) {
+        imageHtml = `
+          <div style="margin-bottom:8px;text-align:center;">
+            <img src="${imageUrl}" alt="${p.name}" 
+                 onclick="openImageModal('${imageUrl}')"
+                 style="max-width:100%;max-height:120px;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,0.1);cursor:zoom-in;">
+          </div>`;
+      }
+
+      const marker = L.marker([lat, lng], { icon: iconType })
+        .bindPopup(`
+          <div style="max-width:260px;font-size:0.9em;">
+            ${imageHtml}
+            <b style="font-size:1.1em;display:block;margin-bottom:4px;">${p.name}</b>
+            <small style="color:#666;display:block;margin-bottom:6px;">${p.province || ''}</small>
+            <hr style="margin:6px 0;border:0;border-top:1px solid #eee;">
+            <p style="margin:6px 0;line-height:1.4;max-height:60px;overflow-y:auto;">${description.replace(/\n/g, '<br>')}</p>
+            <div style="text-align:right;margin-top:8px;">
+              <button onclick="addPlaceToItinerary(${p.id}, '${p.name.replace(/'/g, "\\'")}')" 
+                      style="font-size:0.85em;padding:4px 8px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">
+                Chọn
+              </button>
+            </div>
+          </div>
+        `);
+      marker.addTo(markersLayer);
+    });
+  }
+
+  log('Filtered on map:', { type, province });
+
 
   placeItems.forEach(item => {
     const provinceText = item.textContent.toLowerCase();
@@ -384,65 +451,71 @@ window.resetFilter = function () {
   if (typeFilter) typeFilter.value = '';
   if (provinceFilter) provinceFilter.value = '';
 
-  // 1. HIỆN LẠI TẤT CẢ TRONG DANH SÁCH
+  // 1. Hiện lại danh sách (nếu có)
   document.querySelectorAll('#places-list > div').forEach(item => {
     item.style.display = 'flex';
   });
 
-  // 2. HIỆN LẠI TẤT CẢ MARKER TỪ placesData (DÙ ĐÃ BỊ XÓA)
-  if (map && markersLayer && Object.keys(placesData).length > 0) {
-    markersLayer.clearLayers();
-    Object.keys(placesData).forEach(id => {
-      const p = placesData[id];
+  // 2. Xóa toàn bộ marker cũ trên map
+  if (!map || !markersLayer) return;
+  markersLayer.clearLayers();
+
+  // 3. Thêm lại toàn bộ marker từ placesData
+  if (Object.keys(placesData).length > 0) {
+    Object.values(placesData).forEach(p => {
       const [lng, lat] = p.coordinates || [];
       if (!lat || !lng) return;
 
+      const iconType = icons[p.type?.toLowerCase()] || icons.default;
       const description = p.description || 'Không có mô tả';
-const imageUrl = p.image_url ? p.image_url : null;
+      const imageUrl = p.image_url ? p.image_url : null;
 
-let imageHtml = '';
-if (imageUrl) {
-  imageHtml = `
-    <div style="margin-bottom: 8px; text-align: center;">
-      <img src="${imageUrl}" 
-           alt="${name}" 
-           onclick="openImageModal('${imageUrl}')"
-           style="max-width: 100%; max-height: 120px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in;"
-           title="Click để phóng to">
-    </div>
-  `;
-}
+      let imageHtml = '';
+      if (imageUrl) {
+        imageHtml = `
+          <div style="margin-bottom: 8px; text-align: center;">
+            <img src="${imageUrl}" 
+                 alt="${p.name}" 
+                 onclick="openImageModal('${imageUrl}')"
+                 style="max-width: 100%; max-height: 120px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in;">
+          </div>
+        `;
+      }
 
-const marker = L.marker([lat, lng])
-  .bindPopup(`
-    <div style="max-width: 260px; font-size: 0.9em;">
-      ${imageHtml}
-      <b style="font-size: 1.1em; display: block; margin-bottom: 4px;">${p.name}</b>
-      <small style="color: #666; display: block; margin-bottom: 6px;">
-        ${p.province || ''}
-      </small>
-      <hr style="margin: 6px 0; border: 0; border-top: 1px solid #eee;">
-      <p style="margin: 6px 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
-        ${description.replace(/\n/g, '<br>')}
-      </p>
-      <div style="text-align: right; margin-top: 8px;">
-        <button onclick="addPlaceToItinerary(${id}, '${p.name.replace(/'/g, "\\'")}')"
-                style="font-size: 0.85em; padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Chọn
-        </button>
-      </div>
-    </div>
-  `);
+      const marker = L.marker([lat, lng], { icon: iconType })
+        .bindPopup(`
+          <div style="max-width: 260px; font-size: 0.9em;">
+            ${imageHtml}
+            <b style="font-size: 1.1em; display: block; margin-bottom: 4px;">${p.name}</b>
+            <small style="color: #666; display: block; margin-bottom: 6px;">
+              ${p.province || ''}
+            </small>
+            <hr style="margin: 6px 0; border: 0; border-top: 1px solid #eee;">
+            <p style="margin: 6px 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
+              ${description.replace(/\n/g, '<br>')}
+            </p>
+            <div style="text-align: right; margin-top: 8px;">
+              <button onclick="addPlaceToItinerary(${p.id}, '${p.name.replace(/'/g, "\\'")}')"
+                      style="font-size: 0.85em; padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+                Chọn
+              </button>
+            </div>
+          </div>
+        `);
       marker.addTo(markersLayer);
     });
-    log('All markers restored from placesData');
-  }
 
-  if (map && markersLayer && Object.keys(placesData).length === 0) {
-    log('No placesData to restore markers');
-  }
+    // 4. Fit lại bản đồ cho đẹp
+    const bounds = L.latLngBounds(Object.values(placesData).map(p => {
+      const [lng, lat] = p.coordinates || [];
+      return lat && lng ? [lat, lng] : null;
+    }).filter(Boolean));
+    if (bounds.isValid()) map.fitBounds(bounds);
 
-  log('Filter reset');
+    log(`✅ All markers restored (${Object.keys(placesData).length})`);
+  } else {
+    warn('⚠️ placesData rỗng — không thể khôi phục marker, cần kiểm tra loadPlacesData()');
+  }
 };
 
 /* -----------------------------------------------------------------
@@ -541,3 +614,116 @@ if (itineraryId) {
 } else {
   warn('itineraryId not found - skipping status toggle');
 }
+
+/* -----------------------------------------------------------------
+   10. PROFILE MODAL – LẤY THÔNG TIN NGƯỜI DÙNG VÀ HIỂN THỊ
+------------------------------------------------------------------- */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const profileLink = document.getElementById('profile-link');
+  const modal = document.getElementById('profile-modal');
+  const closeBtn = modal ? modal.querySelector('.close-modal') : null;
+
+  // Mở modal khi click "Hồ sơ"
+  if (profileLink && modal) {
+    profileLink.addEventListener('click', async (e) => {
+      e.preventDefault();
+
+      try {
+        const res = await fetch('/user/profile-data');
+        if (!res.ok) throw new Error('Không lấy được dữ liệu hồ sơ');
+        const json = await res.json();
+
+        if (json.success) {
+          const { username, email, phone, createdAt } = json.data;
+          modal.querySelector('.profile-info').innerHTML = `
+            <p><strong>Tên đăng nhập:</strong> ${username}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Số điện thoại:</strong> ${phone || 'Chưa cập nhật'}</p>
+            <p><strong>Ngày tham gia:</strong> ${new Date(createdAt).toLocaleDateString('vi-VN')}</p>
+          `;
+        } else {
+          modal.querySelector('.profile-info').innerHTML = `<p>Lỗi: ${json.message}</p>`;
+        }
+      } catch (err) {
+        modal.querySelector('.profile-info').innerHTML = `<p style="color:red;">Không thể tải thông tin hồ sơ.</p>`;
+      }
+
+      modal.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    });
+  }
+
+  // Nút đóng
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      modal.style.display = 'none';
+      document.body.style.overflow = '';
+    });
+  }
+
+  // Click ra ngoài để đóng
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+    });
+  }
+});
+
+// ====================== PROFILE MODAL ======================
+window.openProfileModal = async function () {
+  const modal = document.getElementById('profile-modal');
+  const infoBox = document.getElementById('profile-info');
+  const avatar = document.getElementById('profile-avatar');
+
+  if (!modal || !infoBox) return;
+
+  // Hiện modal trước
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  infoBox.innerHTML = '<p>Đang tải thông tin...</p>';
+
+  try {
+    const res = await fetch('/user/profile-data');
+    if (!res.ok) throw new Error('Không thể tải thông tin người dùng');
+    const json = await res.json();
+
+    if (!json.success || !json.data) {
+      infoBox.innerHTML = `<p style="color:red;">${json.message || 'Lỗi tải hồ sơ'}</p>`;
+      return;
+    }
+
+    const { username, email, phone, createdAt, avatar: avatarUrl } = json.data;
+    if (avatarUrl) avatar.src = avatarUrl;
+
+    infoBox.innerHTML = `
+      <p><strong>Tên đăng nhập:</strong> ${username}</p>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Số điện thoại:</strong> ${phone || 'Chưa cập nhật'}</p>
+      <p><strong>Ngày tham gia:</strong> ${new Date(createdAt).toLocaleDateString('vi-VN')}</p>
+    `;
+  } catch (err) {
+    console.error('Lỗi load hồ sơ:', err);
+    infoBox.innerHTML = '<p style="color:red;">Không thể tải thông tin hồ sơ.</p>';
+  }
+};
+
+window.closeProfileModal = function () {
+  const modal = document.getElementById('profile-modal');
+  if (modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+};
+
+// Click ra ngoài để đóng
+document.addEventListener('click', (e) => {
+  const modal = document.getElementById('profile-modal');
+  if (modal && e.target === modal) {
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+});

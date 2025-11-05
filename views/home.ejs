@@ -10,8 +10,9 @@
 <body class="no-filter">
   <!-- ✅ include header ở mọi trang trừ index -->
   <%- include('partials/header') %>
+  <%- include('partials/navbar') %>
   <div class="container">
-    <h2>Xin chào, <%= user.username || user.name %>!</h2>
+    
     <div id="map" style="height: 500px; border-radius: 12px; margin-top: 16px;"></div>
   </div>
 

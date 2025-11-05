@@ -1,0 +1,73 @@
+<!-- MENU DỌC – CÓ THU GỌN RIÊNG -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<aside id="sidebar" class="sidebar">
+  <button id="toggleSidebar" class="toggle-btn">Menu</button>
+
+  <nav class="nav-links">
+    <a href="/" class="nav-item <%= fullPath === '/' ? 'active' : '' %>">
+      <i class="fa-solid fa-house"></i> <span>Trang chủ</span>
+    </a>
+    <a href="/itineraries/create" class="nav-item <%= fullPath === '/itineraries/create' ? 'active' : '' %>">
+      <i class="fa-solid fa-calendar-plus"></i> <span>Tạo lịch trình</span>
+    </a>
+    <a href="/itineraries/page" class="nav-item <%= fullPath === '/itineraries/page' ? 'active' : '' %>">
+      <i class="fa-solid fa-list"></i> <span>Xem lịch trình</span>
+    </a>
+    <a href="/about" class="nav-item <%= fullPath === '/about' ? 'active' : '' %>">
+      <i class="fa-solid fa-circle-info"></i> <span>Giới thiệu</span>
+    </a>
+  </nav>
+</aside>
+
+<!-- MODAL ẢNH – GIỮ NGUYÊN -->
+<div id="imageModal" 
+     style="display:none; position:fixed; z-index:10000; inset:0; 
+            background:rgba(0,0,0,0.85); justify-content:center; 
+            align-items:center; padding:20px;">
+  <div style="position:relative; max-width:90%; max-height:90%;">
+    <img id="modalImage" src="" alt="Phóng to" style="max-width:100%; max-height:85vh; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <button onclick="closeModal()" style="position:absolute; top:-12px; right:-12px; background:#fff; color:#333; border:none; width:36px; height:36px; border-radius:50%; font-size:1.4em; cursor:pointer;">×</button>
+  </div>
+</div>
+
+<script>
+  // === GIỮ NGUYÊN SCRIPT MODAL ===
+  function openImageModal(src) {
+    const modal = document.getElementById('imageModal');
+    const img = document.getElementById('modalImage');
+    img.src = src;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    const modal = document.getElementById('imageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+  document.getElementById('imageModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+  // === GIỮ NGUYÊN SCRIPT TOGGLE – CHỈ ĐỔI ID ===
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("leftMenu");
+    const toggleBtn = document.getElementById("toggleLeftMenu");
+    const mapContainer = document.getElementById("map");
+
+    if (!sidebar || !toggleBtn) return;
+
+    const saved = localStorage.getItem("leftMenuCollapsed") === "true";
+    if (saved) {
+      sidebar.classList.add("collapsed");
+      document.body.classList.add("left-menu-collapsed");
+    }
+
+    toggleBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("collapsed");
+      document.body.classList.toggle("left-menu-collapsed");
+      localStorage.setItem("leftMenuCollapsed", sidebar.classList.contains("collapsed"));
+      if (mapContainer && window.map?.invalidateSize) {
+        setTimeout(() => map.invalidateSize(), 400);
+      }
+    });
+  });
+</script>

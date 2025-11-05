@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const pool = require('../models/db'); // ⚡ Thêm dòng này nếu chưa có
 const {
   createUser,
   findUserByUsername,
@@ -11,10 +12,7 @@ const { showLogin, showRegister } = require('../controllers/userController');
 
 // ===================== Đăng nhập =====================
 router.get('/login', (req, res) => {
-  // Nếu đã đăng nhập thì không cần vào lại trang login
-  if (req.session.user) {
-    return res.redirect('/home');
-  }
+  if (req.session.user) return res.redirect('/home');
   showLogin(req, res);
 });
 
@@ -22,18 +20,14 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await findUserByUsername(username);
-    if (!user) {
+    if (!user)
       return res.render('login', { error: 'Sai tài khoản hoặc mật khẩu' });
-    }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    if (!match)
       return res.render('login', { error: 'Sai tài khoản hoặc mật khẩu' });
-    }
 
-    // ✅ Lưu session user
     req.session.user = { id: user.id, username: user.username };
-    // ✅ Chuyển sang trang home
     res.redirect('/home');
   } catch (err) {
     console.error('Login error:', err);
@@ -43,10 +37,7 @@ router.post('/login', async (req, res) => {
 
 // ===================== Đăng ký =====================
 router.get('/register', (req, res) => {
-  // Nếu đã đăng nhập → không cho vào trang đăng ký nữa
-  if (req.session.user) {
-    return res.redirect('/home');
-  }
+  if (req.session.user) return res.redirect('/home');
   showRegister(req, res);
 });
 
@@ -54,29 +45,24 @@ router.post('/register', async (req, res) => {
   const { username, password, confirmPassword, email, phone } = req.body;
 
   try {
-    // Kiểm tra nhập lại mật khẩu
-    if (password !== confirmPassword) {
-      return res.render('register', { error: 'Mật khẩu và nhập lại mật khẩu không khớp' });
-    }
+    if (password !== confirmPassword)
+      return res.render('register', {
+        error: 'Mật khẩu và nhập lại mật khẩu không khớp'
+      });
 
-    // Kiểm tra username trùng
     const existingUser = await findUserByUsername(username);
-    if (existingUser) {
+    if (existingUser)
       return res.render('register', { error: 'Tên tài khoản đã tồn tại' });
-    }
 
-    // Kiểm tra email trùng
     const existingEmail = await findUserByEmail(email);
-    if (existingEmail) {
+    if (existingEmail)
       return res.render('register', { error: 'Email đã được sử dụng' });
-    }
 
-    // Kiểm tra số điện thoại hợp lệ
-    if (!/^\d{10,11}$/.test(phone)) {
-      return res.render('register', { error: 'Số điện thoại phải có 10-11 chữ số' });
-    }
+    if (!/^\d{10,11}$/.test(phone))
+      return res.render('register', {
+        error: 'Số điện thoại phải có 10-11 chữ số'
+      });
 
-    // ✅ Tạo tài khoản mới
     await createUser(username, password, email, phone);
     res.redirect('/user/login');
   } catch (err) {
@@ -92,17 +78,45 @@ router.get('/logout', (req, res) => {
       console.error('Logout error:', err);
       return res.status(500).send('Lỗi khi đăng xuất');
     }
-    // ✅ Xóa cookie và quay về trang index
     res.clearCookie('connect.sid');
     res.redirect('/');
   });
 });
 
+// ===================== Kiểm tra đăng nhập =====================
 router.get('/check', (req, res) => {
   if (req.session && req.session.user) {
     res.json({ isLoggedIn: true, user: req.session.user });
   } else {
     res.json({ isLoggedIn: false });
+  }
+});
+
+
+// ✅ ✅ ✅ ===================== HỒ SƠ NGƯỜI DÙNG =====================
+router.get('/profile-data', async (req, res) => {
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
+  }
+
+  const userId = req.session.user.id;
+  try {
+    const result = await pool.query(
+  `SELECT username, email, phone, created_at AS "createdAt" 
+   FROM users 
+   WHERE id = $1`,
+  [userId]
+);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
+    }
+
+    const user = result.rows[0];
+    return res.json({ success: true, data: user });
+  } catch (error) {
+    console.error('Lỗi lấy hồ sơ:', error);
+    return res.status(500).json({ success: false, message: 'Không thể tải thông tin người dùng' });
   }
 });
 
