@@ -22,6 +22,10 @@
       <div class="itinerary-list">
         <% if (itineraries && itineraries.length > 0) { %>
           <% itineraries.forEach(itinerary => { %>
+            <% 
+              const totalPlaces = itinerary.places?.length || 0;
+              const completedPlaces = itinerary.places?.filter(p => p.status === true).length || 0;
+            %>
             <div class="itinerary-item card">
               <h3>
                 <a href="/itineraries/<%= itinerary.id %>" class="nav-link" style="display: inline; padding: 0; background: none;">
@@ -29,13 +33,14 @@
                 </a>
               </h3>
               <p style="margin: 4px 0; color: var(--muted); font-size: 0.9em;">
-                <%= itinerary.places?.length || 0 %> địa điểm
+                <%= totalPlaces %> địa điểm (<%= completedPlaces %> hoàn thành)
               </p>
               <ul style="margin: 8px 0 0; padding-left: 20px; font-size: 0.9em;">
                 <% if (itinerary.places && itinerary.places.length > 0) { %>
                   <% itinerary.places.slice(0, 3).forEach(place => { %>
                     <li>
                       <%= place.name %> <em style="color: var(--muted);">(<%= place.type || 'Không xác định' %>)</em>
+                      <% if (place.status === true) { %> <span style="color: green; font-size: 0.8em;">(Hoàn thành)</span> <% } %>
                     </li>
                   <% }) %>
                   <% if (itinerary.places.length > 3) { %>

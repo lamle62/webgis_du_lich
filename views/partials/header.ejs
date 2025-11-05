@@ -1,42 +1,127 @@
-<aside class="vertical-nav" aria-label="Primary navigation">
-	<div class="user-panel card">
-		<% if (typeof user !== 'undefined' && user) { %>
-			<div class="user-name">Xin chào, <strong><%= user.username || user.name %></strong></div>
-			<div class="small muted">
-				<a href="/user/profile">Hồ sơ</a> · <a href="/user/logout">Đăng xuất</a>
-			</div>
-		<% } else { %>
-			<div class="user-guest">Chào mừng khách</div>
-			<div style="margin-top:8px; display: flex; gap: 8px;">
-				<a href="/user/login" class="btn btn-primary">Đăng nhập</a>
-				<a href="/user/register" class="btn btn-ghost">Đăng ký</a>
-			</div>
-		<% } %>
-	</div>
+<!-- Sidebar có thể thu gọn -->
+<aside id="sidebar" class="vertical-nav" aria-label="Primary navigation">
+  <!-- Nút thu gọn -->
+  <button id="toggleSidebar" class="toggle-btn" title="Thu gọn / Mở rộng">
+    ☰
+  </button>
 
-	<!-- Ẩn filter-panel khi ở trang index -->
-	<div class="filter-panel card">
-		<h3>Tìm kiếm & Lọc</h3>
-		<form id="filter-form" onsubmit="event.preventDefault(); filterPlaces(event);">
-			<select id="type-filter" name="type">
-				<option value="">-- Chọn loại --</option>
-				<option value="tourism">Địa điểm du lịch</option>
-				<option value="hotel">Khách sạn</option>
-				<option value="restaurant">Nhà hàng</option>
-			</select>
-			<input type="text" id="province-filter" name="province" placeholder="Nhập tỉnh/thành" />
-			<div style="display:flex; gap:8px; margin-top:6px;">
-				<button type="submit" class="btn btn-primary">Lọc</button>
-				<button type="button" class="btn btn-ghost" onclick="resetFilter()">Xóa bộ lọc</button>
-			</div>
-		</form>
-	</div>
+  <link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  defer
+></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-	<nav class="nav-links card" aria-label="Links">
-		<a class="nav-link <%= ['/', '/home'].includes(fullPath) ? 'active' : '' %>" href="/">Trang chủ</a>
-		<a class="nav-link <%= fullPath === '/places' ? 'active' : '' %>" href="/places">Địa điểm</a>
-		<a class="nav-link <%= fullPath === '/itineraries/create' ? 'active' : '' %>" href="/itineraries/create">Tạo lịch trình</a>
-		<a class="nav-link <%= fullPath === '/itineraries/page' ? 'active' : '' %>" href="/itineraries/page">Xem lịch trình</a>
-		<a class="nav-link <%= fullPath === '/about' ? 'active' : '' %>" href="/about">Giới thiệu</a>
-	</nav>
+  <div class="user-panel card">
+    <% if (typeof user !== 'undefined' && user) { %>
+      <div class="user-name">Xin chào, <strong><%= user.username || user.name %></strong></div>
+      <div class="small muted">
+        <a href="/user/profile">Hồ sơ</a> · <a href="/user/logout">Đăng xuất</a>
+      </div>
+    <% } else { %>
+      <div class="user-guest">Chào mừng khách</div>
+      <div style="margin-top:8px; display: flex; gap: 8px;">
+        <a href="/user/login" class="btn btn-primary">Đăng nhập</a>
+        <a href="/user/register" class="btn btn-ghost">Đăng ký</a>
+      </div>
+    <% } %>
+  </div>
+
+  <div class="filter-panel card">
+    <h3>Tìm kiếm & Lọc</h3>
+    <form id="filter-form" onsubmit="event.preventDefault(); filterPlaces(event);">
+      <select id="type-filter" name="type">
+        <option value="">-- Chọn loại --</option>
+        <option value="tourism">Địa điểm du lịch</option>
+        <option value="hotel">Khách sạn</option>
+        <option value="restaurant">Nhà hàng</option>
+      </select>
+      <input type="text" id="province-filter" name="province" placeholder="Nhập tỉnh/thành" />
+      <div style="display:flex; gap:8px; margin-top:6px;">
+        <button type="submit" class="btn btn-primary">Lọc</button>
+        <button type="button" class="btn btn-ghost" onclick="resetFilter()">Xóa bộ lọc</button>
+      </div>
+    </form>
+  </div>
+
+  <nav class="nav-links card" aria-label="Links">
+  <a class="nav-link <%= ['/', '/home'].includes(fullPath) ? 'active' : '' %>" href="/">
+    <i class="fa-solid fa-house"></i> <span>Trang chủ</span>
+  </a>
+  <a class="nav-link <%= fullPath === '/itineraries/create' ? 'active' : '' %>" href="/itineraries/create">
+    <i class="fa-solid fa-calendar-plus"></i> <span>Tạo lịch trình</span>
+  </a>
+  <a class="nav-link <%= fullPath === '/itineraries/page' ? 'active' : '' %>" href="/itineraries/page">
+    <i class="fa-solid fa-list"></i> <span>Xem lịch trình</span>
+  </a>
+  <a class="nav-link <%= fullPath === '/about' ? 'active' : '' %>" href="/about">
+    <i class="fa-solid fa-circle-info"></i> <span>Giới thiệu</span>
+  </a>
+</nav>
+
 </aside>
+
+<!-- Modal phóng to ảnh -->
+<div id="imageModal" style="display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; padding: 20px;">
+  <div style="position: relative; max-width: 90%; max-height: 90%;">
+    <img id="modalImage" src="" alt="Phóng to ảnh" style="max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+    <button onclick="closeModal()" style="position: absolute; top: -12px; right: -12px; background: #fff; color: #333; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1.4em; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+      ×
+    </button>
+  </div>
+</div>
+
+<script>
+  // Phóng to ảnh
+  function openImageModal(src) {
+    const modal = document.getElementById('imageModal');
+    const img = document.getElementById('modalImage');
+    img.src = src;
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('imageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
+
+  document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+    // ✅ Sidebar toggle có lưu trạng thái
+  document.addEventListener("DOMContentLoaded", function () {
+    const sidebar = document.getElementById("sidebar");
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const mapContainer = document.getElementById("map");
+
+    if (!sidebar || !toggleBtn) return;
+
+    // Áp dụng trạng thái cũ từ localStorage nếu có
+    const savedState = localStorage.getItem("sidebarCollapsed");
+    if (savedState === "true") {
+      sidebar.classList.add("collapsed");
+      document.body.classList.add("sidebar-collapsed");
+    }
+
+    // Khi click toggle
+    toggleBtn.addEventListener("click", function () {
+      sidebar.classList.toggle("collapsed");
+      document.body.classList.toggle("sidebar-collapsed");
+
+      const nowCollapsed = sidebar.classList.contains("collapsed");
+      localStorage.setItem("sidebarCollapsed", nowCollapsed);
+
+      // Gọi invalidateSize để Leaflet cập nhật bản đồ (nếu có)
+      if (mapContainer && window.map && map.invalidateSize) {
+        setTimeout(() => map.invalidateSize(), 400);
+      }
+    });
+  });
+</script>
+

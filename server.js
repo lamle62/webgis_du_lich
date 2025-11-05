@@ -78,33 +78,12 @@ app.get("/home", async (req, res) => {
 });
 
 // -------------------- Trang danh sách lịch trình --------------------
-app.get("/itineraries/page", async (req, res) => {
-  if (!req.session.user) return res.redirect("/user/login");
-
-  try {
-    const itineraries = await Itinerary.getAllByUser(req.session.user.id);
-    res.render("itinerary", {
-      user: req.session.user,
-      page: "itineraries",
-      itineraries,
-      error: null,
-    });
-  } catch (err) {
-    console.error("Error loading itinerary list:", err.message);
-    res.render("itinerary", {
-      user: req.session.user,
-      page: "itineraries",
-      itineraries: [],
-      error: "Không thể tải danh sách lịch trình.",
-    });
-  }
-});
 
 // -------------------- API GeoJSON cho bản đồ --------------------
 app.get("/places/geojson", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, name, type, province, description,
+      SELECT id, name, type, province, description,image_url,
              ST_X(geom) AS lng, ST_Y(geom) AS lat
       FROM places
     `);
@@ -115,6 +94,7 @@ app.get("/places/geojson", async (req, res) => {
         type: "Feature",
         geometry: { type: "Point", coordinates: [r.lng, r.lat] },
         properties: r,
+        image_url: r.image_url
       })),
     };
 

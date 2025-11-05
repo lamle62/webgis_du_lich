@@ -3,6 +3,33 @@ let markersLayer = null;
 let selectedPlaces = [];
 let placesData = {};
 
+const icons = {
+  tourism: L.icon({
+    iconUrl: '/images/icons/tourism.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -30]
+  }),
+  restaurant: L.icon({
+    iconUrl: '/images/icons/restaurant.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -30]
+  }),
+  hotel: L.icon({
+    iconUrl: '/images/icons/hotel.png',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -30]
+  }),
+  default: L.icon({
+    iconUrl: '/images/icons/default.png',
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -25]
+  })
+};
+
 /*  1. HÀM CÔNG CỤ (utility)                                    */
 const log = (msg, ...args) => console.log(`[main.js] ${msg}`, ...args);
 const warn = (msg, ...args) => console.warn(`[main.js] ${msg}`, ...args);
@@ -68,14 +95,49 @@ async function loadPlacesData() {
         coordinates: [lng, lat]
       };
 
-      const marker = L.marker([lat, lng])
-        .bindPopup(`
-          <b>${name}</b><br>
-          ${f.properties.province || ''}<br>
-          <button onclick="addPlaceToItinerary(${id}, '${name.replace(/'/g, "\\'")}')">
-            Chọn
-          </button>
-        `);
+      const description = f.properties.description || 'Không có mô tả';
+      const imageUrl = f.properties.image_url ? f.properties.image_url : null;
+
+let imageHtml = '';
+if (imageUrl) {
+  imageHtml = `
+    <div style="margin-bottom: 8px; text-align: center;">
+      <img src="${imageUrl}" 
+           alt="${name}" 
+           onclick="openImageModal('${imageUrl}')"
+           style="max-width: 100%; max-height: 120px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in;"
+           title="Click để phóng to">
+    </div>
+  `;
+}
+
+      // Xác định loại địa điểm
+const placeType = f.properties.type ? f.properties.type.toLowerCase() : 'default';
+
+// Chọn icon theo loại
+const iconType = icons[placeType] || icons.default;
+
+// Tạo marker có icon riêng
+const marker = L.marker([lat, lng], { icon: iconType })
+  .bindPopup(`
+    <div style="max-width: 260px; font-size: 0.9em;">
+      ${imageHtml}
+      <b style="font-size: 1.1em; display: block; margin-bottom: 4px;">${name}</b>
+      <small style="color: #666; display: block; margin-bottom: 6px;">
+        ${f.properties.province || ''}
+      </small>
+      <hr style="margin: 6px 0; border: 0; border-top: 1px solid #eee;">
+      <p style="margin: 6px 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
+        ${description.replace(/\n/g, '<br>')}
+      </p>
+      <div style="text-align: right; margin-top: 8px;">
+        <button onclick="addPlaceToItinerary(${id}, '${name.replace(/'/g, "\\'")}')"
+                style="font-size: 0.85em; padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Chọn
+        </button>
+      </div>
+    </div>
+  `);
       marker.addTo(markersLayer);
       bounds.extend([lat, lng]);
     });
@@ -335,14 +397,42 @@ window.resetFilter = function () {
       const [lng, lat] = p.coordinates || [];
       if (!lat || !lng) return;
 
-      const marker = L.marker([lat, lng])
-        .bindPopup(`
-          <b>${p.name}</b><br>
-          ${p.province || ''}<br>
-          <button onclick="addPlaceToItinerary(${id}, '${p.name.replace(/'/g, "\\'")}')">
-            Chọn
-          </button>
-        `);
+      const description = p.description || 'Không có mô tả';
+const imageUrl = p.image_url ? p.image_url : null;
+
+let imageHtml = '';
+if (imageUrl) {
+  imageHtml = `
+    <div style="margin-bottom: 8px; text-align: center;">
+      <img src="${imageUrl}" 
+           alt="${name}" 
+           onclick="openImageModal('${imageUrl}')"
+           style="max-width: 100%; max-height: 120px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); cursor: zoom-in;"
+           title="Click để phóng to">
+    </div>
+  `;
+}
+
+const marker = L.marker([lat, lng])
+  .bindPopup(`
+    <div style="max-width: 260px; font-size: 0.9em;">
+      ${imageHtml}
+      <b style="font-size: 1.1em; display: block; margin-bottom: 4px;">${p.name}</b>
+      <small style="color: #666; display: block; margin-bottom: 6px;">
+        ${p.province || ''}
+      </small>
+      <hr style="margin: 6px 0; border: 0; border-top: 1px solid #eee;">
+      <p style="margin: 6px 0; line-height: 1.4; max-height: 60px; overflow-y: auto;">
+        ${description.replace(/\n/g, '<br>')}
+      </p>
+      <div style="text-align: right; margin-top: 8px;">
+        <button onclick="addPlaceToItinerary(${id}, '${p.name.replace(/'/g, "\\'")}')"
+                style="font-size: 0.85em; padding: 4px 8px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Chọn
+        </button>
+      </div>
+    </div>
+  `);
       marker.addTo(markersLayer);
     });
     log('All markers restored from placesData');
@@ -393,3 +483,61 @@ document.addEventListener('DOMContentLoaded', async () => {
     log('Detail page detected');
   }
 });
+
+// Thêm chức năng tích status trong bảng danh sách
+const itineraryId = window.itineraryId; // Lấy từ EJS
+if (itineraryId) {
+  document.querySelectorAll('.place-status-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('change', async function () {
+      const placeId = this.dataset.placeId;
+      const isDone = this.checked;
+
+      try {
+        const res = await 
+        fetch(`/itineraries/${itineraryId}/toggle-status`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    body: JSON.stringify({ placeId: Number(placeId), status: isDone })
+})
+.then(res => {
+    if (!res.ok) {
+        return res.json().then(err => { throw err; });
+    }
+    return res.json();
+})
+.then(data => {
+    if (data.success) {
+        // CẬP NHẬT UI CHÍNH XÁC
+        checkbox.checked = isDone;
+        console.log('UI cập nhật thành công:', isDone);
+    } else {
+        throw new Error(data.error || 'Cập nhật thất bại');
+    }
+})
+.catch(error => {
+    console.error('Lỗi cập nhật status:', error.message || error);
+    alert('Lỗi cập nhật trạng thái: ' + (error.message || 'Không rõ'));
+    // Hoàn tác checkbox nếu lỗi
+    checkbox.checked = !isDone;
+});
+
+        // Cập nhật label nếu có (tùy chọn, nếu có label)
+        const label = this.closest('td').querySelector('.status-label');
+        if (label) {
+          label.textContent = isDone ? 'Hoàn thành' : 'Chưa hoàn thành';
+          label.className = `status-label ${isDone ? 'status-done' : 'status-pending'}`;
+        }
+
+        log(`Status updated for place ${placeId}: ${isDone}`);
+      } catch (err) {
+        alert('Lỗi cập nhật status: ' + err.message);
+        this.checked = !isDone; // Rollback checkbox
+      }
+    });
+  });
+} else {
+  warn('itineraryId not found - skipping status toggle');
+}

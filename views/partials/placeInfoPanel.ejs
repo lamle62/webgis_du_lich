@@ -1,0 +1,40 @@
+<!-- 🧭 PANEL CHI TIẾT ĐỊA ĐIỂM -->
+<div id="place-info-panel" 
+     style="position: fixed; top: 0; right: -420px; width: 400px; height: 100vh; background: #fff; box-shadow: -4px 0 12px rgba(0,0,0,0.15); 
+            transition: right 0.35s ease; z-index: 9999; overflow-y: auto; padding: 16px;">
+  <button id="close-info-panel" 
+          style="position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 1.6em; cursor: pointer;">
+    ×
+  </button>
+
+  <div id="place-info-content" style="margin-top: 36px;">
+    <p style="color: #777;">Chọn một địa điểm trên bản đồ để xem thông tin chi tiết.</p>
+  </div>
+</div>
+
+<script>
+  // ====== HÀM ĐIỀU KHIỂN PANEL ======
+  window.showPlaceInfoPanel = function (htmlContent) {
+    const panel = document.getElementById('place-info-panel');
+    const content = document.getElementById('place-info-content');
+    if (!panel || !content) return;
+    content.innerHTML = htmlContent;
+    panel.style.right = '0';
+  };
+
+  window.closePlaceInfoPanel = function () {
+    const panel = document.getElementById('place-info-panel');
+    if (panel) panel.style.right = '-420px';
+  };
+
+  document.getElementById('close-info-panel')?.addEventListener('click', closePlaceInfoPanel);
+
+  // Tùy chọn: click ra ngoài để đóng panel
+  document.addEventListener('click', function (e) {
+    const panel = document.getElementById('place-info-panel');
+    if (!panel) return;
+    if (panel.style.right === '0px' && !panel.contains(e.target) && !e.target.closest('.leaflet-marker-icon')) {
+      closePlaceInfoPanel();
+    }
+  });
+</script>
