@@ -1,0 +1,22 @@
+<% layout('admin/layout') %>
+
+<h2>Top 10 địa điểm được truy cập nhiều</h2>
+
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Tên địa điểm</th>
+      <th>Lượt xem</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% topPlaces.forEach(p => { %>
+    <tr>
+      <td><%= p.id %></td>
+      <td><%= p.name %></td>
+      <td><%= p.views %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>

@@ -1,0 +1,106 @@
+<% layout('admin/layout') %>
+
+<h2><%= place ? 'Sửa địa điểm' : 'Thêm địa điểm mới' %></h2>
+
+<form
+  class="admin-form"
+  action="<%= place ? '/admin/places/edit/' + place.id : '/admin/places/add' %>"
+  method="POST"
+  enctype="multipart/form-data"
+>
+  <!-- Tên địa điểm -->
+  <div class="form-group">
+    <label for="name">Tên địa điểm</label>
+    <input
+      type="text"
+      name="name"
+      id="name"
+      value="<%= place ? place.name : '' %>"
+      required
+    />
+  </div>
+
+  <!-- Loại địa điểm -->
+  <div class="form-group">
+    <label for="type">Loại địa điểm</label>
+    <input
+      type="text"
+      name="type"
+      id="type"
+      value="<%= place ? place.type : '' %>"
+      required
+    />
+  </div>
+
+  <!-- Tỉnh/Thành phố -->
+  <div class="form-group">
+    <label for="province">Tỉnh/Thành phố</label>
+    <input
+      type="text"
+      name="province"
+      id="province"
+      value="<%= place ? place.province : '' %>"
+      required
+    />
+  </div>
+
+  <!-- Địa chỉ -->
+  <div class="form-group">
+    <label for="address">Địa chỉ</label>
+    <input
+      type="text"
+      name="address"
+      id="address"
+      value="<%= place ? place.address : '' %>"
+    />
+  </div>
+
+  <!-- Mô tả -->
+  <div class="form-group">
+    <label for="description">Mô tả</label>
+    <textarea name="description" id="description">
+<%= place ? place.description : '' %></textarea
+    >
+  </div>
+
+  <!-- Tọa độ -->
+  <div class="form-group">
+    <label>Vĩ độ / Kinh độ</label>
+    <input
+      type="number"
+      step="any"
+      name="lng"
+      value="<%= place && place.geom && place.geom.coordinates ? place.geom.coordinates[0] : '' %>"
+      placeholder="Kinh độ"
+      required
+    />
+    <input
+      type="number"
+      step="any"
+      name="lat"
+      value="<%= place && place.geom && place.geom.coordinates ? place.geom.coordinates[1] : '' %>"
+      placeholder="Vĩ độ"
+      required
+    />
+  </div>
+
+  <!-- Ảnh -->
+  <div class="form-group">
+    <label for="image">Ảnh địa điểm</label>
+    <input type="file" name="image" id="image" accept="image/*" />
+    <% if(place && place.image_url){ %>
+    <div class="preview-img">
+      <img
+        src="/images/<%= place.image_url %>"
+        alt="Ảnh địa điểm"
+        width="200"
+      />
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Nút submit -->
+  <button type="submit" class="admin-btn add">
+    <%= place ? 'Cập nhật' : 'Thêm địa điểm' %>
+  </button>
+</form>

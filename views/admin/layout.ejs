@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= title || "Admin Dashboard" %></title>
+    <link rel="stylesheet" href="/css/admin.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Header / Navigation -->
+    <header class="admin-header">
+      <div class="logo">WebGIS Admin</div>
+      <nav class="admin-nav">
+        <a href="/admin/dashboard">Danh sách địa điểm</a>
+        <a href="/admin/stats">Thống kê</a>
+        <a href="/admin/places/add">Thêm địa điểm</a>
+        <a href="/user/logout">Đăng xuất</a>
+      </nav>
+    </header>
+
+    <!-- Main content -->
+    <main class="admin-main"><%- body %></main>
+
+    <script src="/js/admin.js"></script>
+  </body>
+</html>

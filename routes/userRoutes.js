@@ -1,124 +1,110 @@
-// routes/userRoutes.js
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const bcrypt = require('bcryptjs');
-const pool = require('../models/db'); // ⚡ Thêm dòng này nếu chưa có
+const bcrypt = require("bcryptjs");
+const pool = require("../models/db");
 const {
   createUser,
   findUserByUsername,
-  findUserByEmail
-} = require('../models/userModel');
-const { showLogin, showRegister } = require('../controllers/userController');
+  findUserByEmail,
+} = require("../models/userModel");
+const { showLogin, showRegister } = require("../controllers/userController");
+const { isLoggedIn, requireRole } = require("../middleware/auth");
 
 // ===================== Đăng nhập =====================
-router.get('/login', (req, res) => {
-  if (req.session.user) return res.redirect('/home');
+router.get("/login", (req, res) => {
+  if (req.session.user) {
+    return req.session.user.role === "admin"
+      ? res.redirect("/admin/dashboard")
+      : res.redirect("/home");
+  }
   showLogin(req, res);
 });
 
-router.post('/login', async (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await findUserByUsername(username);
     if (!user)
-      return res.render('login', { error: 'Sai tài khoản hoặc mật khẩu' });
+      return res.render("user/login", { error: "Sai tài khoản hoặc mật khẩu" });
 
     const match = await bcrypt.compare(password, user.password);
     if (!match)
-      return res.render('login', { error: 'Sai tài khoản hoặc mật khẩu' });
+      return res.render("user/login", { error: "Sai tài khoản hoặc mật khẩu" });
 
-    req.session.user = { id: user.id, username: user.username };
-    res.redirect('/home');
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      role: user.role,
+    };
+
+    if (user.role === "admin") return res.redirect("/admin/dashboard");
+    return res.redirect("/home");
   } catch (err) {
-    console.error('Login error:', err);
-    res.render('login', { error: 'Lỗi server khi đăng nhập' });
+    console.error("Login error:", err);
+    res.render("user/login", { error: "Lỗi server khi đăng nhập" });
   }
 });
 
 // ===================== Đăng ký =====================
-router.get('/register', (req, res) => {
-  if (req.session.user) return res.redirect('/home');
+router.get("/register", (req, res) => {
+  if (req.session.user) return res.redirect("/home");
   showRegister(req, res);
 });
 
-router.post('/register', async (req, res) => {
+router.post("/register", async (req, res) => {
   const { username, password, confirmPassword, email, phone } = req.body;
-
   try {
     if (password !== confirmPassword)
-      return res.render('register', {
-        error: 'Mật khẩu và nhập lại mật khẩu không khớp'
-      });
+      return res.render("user/register", { error: "Mật khẩu không khớp" });
 
-    const existingUser = await findUserByUsername(username);
-    if (existingUser)
-      return res.render('register', { error: 'Tên tài khoản đã tồn tại' });
+    if (await findUserByUsername(username))
+      return res.render("user/register", { error: "Tên tài khoản đã tồn tại" });
 
-    const existingEmail = await findUserByEmail(email);
-    if (existingEmail)
-      return res.render('register', { error: 'Email đã được sử dụng' });
+    if (await findUserByEmail(email))
+      return res.render("user/register", { error: "Email đã được sử dụng" });
 
-    if (!/^\d{10,11}$/.test(phone))
-      return res.render('register', {
-        error: 'Số điện thoại phải có 10-11 chữ số'
-      });
-
-    await createUser(username, password, email, phone);
-    res.redirect('/user/login');
+    await createUser(username, password, email, phone, "user");
+    res.redirect("/user/login");
   } catch (err) {
-    console.error('Register error:', err);
-    res.render('register', { error: 'Lỗi server khi đăng ký' });
+    console.error(err);
+    res.render("user/register", { error: "Lỗi server khi đăng ký" });
   }
 });
 
 // ===================== Đăng xuất =====================
-router.get('/logout', (req, res) => {
-  req.session.destroy(err => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).send('Lỗi khi đăng xuất');
-    }
-    res.clearCookie('connect.sid');
-    res.redirect('/');
+router.get("/logout", isLoggedIn, (req, res) => {
+  req.session.destroy((err) => {
+    if (err) return res.status(500).send("Lỗi khi đăng xuất");
+    res.clearCookie("connect.sid");
+    res.redirect("/");
   });
 });
 
-// ===================== Kiểm tra đăng nhập =====================
-router.get('/check', (req, res) => {
-  if (req.session && req.session.user) {
-    res.json({ isLoggedIn: true, user: req.session.user });
-  } else {
-    res.json({ isLoggedIn: false });
-  }
-});
-
-
-// ✅ ✅ ✅ ===================== HỒ SƠ NGƯỜI DÙNG =====================
-router.get('/profile-data', async (req, res) => {
-  if (!req.session.user) {
-    return res.status(401).json({ success: false, message: 'Chưa đăng nhập' });
-  }
-
+// ===================== Hồ sơ người dùng =====================
+router.get("/profile-data", isLoggedIn, async (req, res) => {
   const userId = req.session.user.id;
   try {
     const result = await pool.query(
-  `SELECT username, email, phone, created_at AS "createdAt" 
-   FROM users 
-   WHERE id = $1`,
-  [userId]
-);
+      `SELECT username, email, phone, role, created_at AS "createdAt" FROM users WHERE id = $1`,
+      [userId]
+    );
+    if (result.rows.length === 0)
+      return res
+        .status(404)
+        .json({ success: false, message: "Không tìm thấy người dùng" });
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'Không tìm thấy người dùng' });
-    }
-
-    const user = result.rows[0];
-    return res.json({ success: true, data: user });
-  } catch (error) {
-    console.error('Lỗi lấy hồ sơ:', error);
-    return res.status(500).json({ success: false, message: 'Không thể tải thông tin người dùng' });
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res
+      .status(500)
+      .json({ success: false, message: "Không thể tải thông tin người dùng" });
   }
 });
 
+// ===================== User-only page =====================
+router.get("/user-area", isLoggedIn, requireRole("user"), (req, res) => {
+  res.send(`Chào ${req.session.user.username}, đây là trang dành cho user.`);
+});
 
 module.exports = router;

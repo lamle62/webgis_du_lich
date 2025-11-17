@@ -12,9 +12,11 @@
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "ejs": "^3.1.10",
+    "ejs-mate": "^4.0.0",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "memorystore": "^1.6.7",
+    "multer": "^2.0.2",
     "pg": "^8.16.3"
   },
   "devDependencies": {

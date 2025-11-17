@@ -1,0 +1,42 @@
+<%- include('admin/layout', { title: "Quản lý địa điểm", body: `
+<a href="/admin/places/add" class="btn btn-primary mb-3">+ Thêm địa điểm</a>
+
+<table class="table table-bordered table-striped">
+  <thead class="table-dark">
+    <tr>
+      <th>ID</th>
+      <th>Tên</th>
+      <th>Tỉnh</th>
+      <th>Ảnh</th>
+      <th>Tọa độ</th>
+      <th>Hành động</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% places.forEach(p => { %>
+    <tr>
+      <td><%= p.id %></td>
+      <td><%= p.name %></td>
+      <td><%= p.province %></td>
+      <td>
+        <% if(p.image_url){ %>
+        <img src="<%= p.image_url %>" alt="ảnh" style="height: 60px" />
+        <% } %>
+      </td>
+      <td><%= p.geom %></td>
+      <td>
+        <a href="/admin/places/edit/<%= p.id %>" class="btn btn-warning btn-sm"
+          >Sửa</a
+        >
+        <a
+          href="/admin/places/delete/<%= p.id %>"
+          class="btn btn-danger btn-sm"
+          onclick="return confirm('Xóa địa điểm này?')"
+          >Xóa</a
+        >
+      </td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+`, user:user }) %>

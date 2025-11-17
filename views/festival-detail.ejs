@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= festival.name %> - Thông tin lễ hội</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      body {
+        font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+        margin: 20px auto;
+        max-width: 1000px;
+        background: #f9f9f9;
+        color: #333;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #0056b3;
+      }
+      .btn-back-text {
+        display: inline-block;
+        margin-bottom: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .festival-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        align-items: flex-start;
+      }
+      .festival-header img {
+        max-width: 300px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .festival-info {
+        flex: 1;
+      }
+      .festival-info h1 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 2em;
+        color: #007bff;
+      }
+      .festival-info p {
+        margin: 6px 0;
+        line-height: 1.5;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/" class="btn-back-text">← Quay lại trang chủ</a>
+    <div class="festival-header">
+      <% if(festival.image_url){ %>
+      <img src="<%= festival.image_url %>" alt="<%= festival.name %>" />
+      <% } %>
+      <div class="festival-info">
+        <h1><%= festival.name %></h1>
+        <p><strong>Thời gian:</strong> <%= festival.date_text %></p>
+        <% if(festival.event_location){ %>
+        <p><strong>Địa điểm:</strong> <%= festival.event_location %></p>
+        <% } %>
+        <p>
+          <strong>Giá vé:</strong> <%= festival.ticket_price || 'Miễn phí' %>
+        </p>
+
+        <p>
+          <strong>Mô tả:</strong> <%= festival.description || 'Chưa có mô tả' %>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

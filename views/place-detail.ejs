@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title><%= place.name %> - Thông tin địa điểm</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
+    />
+    <style>
+      body {
+        font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif;
+        margin: 20px auto;
+        max-width: 1000px;
+        background: #f9f9f9;
+        color: #333;
+      }
+      a {
+        color: #007bff;
+        text-decoration: none;
+      }
+      a:hover {
+        color: #0056b3;
+      }
+      .btn-back-text {
+        display: inline-block;
+        margin-bottom: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: underline;
+      }
+      .place-header {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        align-items: flex-start;
+      }
+      .place-header img {
+        max-width: 300px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .place-info {
+        flex: 1;
+      }
+      .place-info h1 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 2em;
+        color: #007bff;
+      }
+      .place-info p {
+        margin: 6px 0;
+        line-height: 1.5;
+      }
+      .btn-route {
+        padding: 8px 16px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: 0.2s;
+      }
+      .btn-route:hover {
+        background: #0056b3;
+      }
+      #map {
+        height: 500px;
+        width: 100%;
+        position: relative;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+      }
+      .nearby-section {
+        margin-top: 30px;
+      }
+      .nearby-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+      .nearby-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.2s;
+      }
+      .nearby-card:hover {
+        transform: translateY(-3px);
+      }
+      .nearby-card img {
+        width: 100%;
+        height: 130px;
+        object-fit: cover;
+      }
+      .nearby-card-body {
+        padding: 10px;
+      }
+      .nearby-card-body a {
+        font-weight: bold;
+        font-size: 1em;
+      }
+      .nearby-card-body small {
+        display: block;
+        margin-top: 4px;
+        color: #666;
+      }
+
+      .leaflet-routing-container {
+        max-height: 480px;
+        overflow-y: auto;
+        background: white;
+        z-index: 1000;
+        border-radius: 10px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        padding: 5px;
+      }
+      .leaflet-routing-container h2,
+      .leaflet-routing-container h3 {
+        font-size: 16px;
+        margin: 12px 0 8px 0;
+        color: #007bff;
+      }
+      .leaflet-routing-alt {
+        padding: 10px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .leaflet-routing-alt h3 {
+        margin: 0 0 8px 0;
+      }
+      .leaflet-routing-instruction {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        margin-bottom: 4px;
+        border-radius: 6px;
+        background: #f5f8ff;
+        color: #333;
+        font-weight: 500;
+        font-size: 14px;
+      }
+      .leaflet-routing-instruction:hover {
+        background: #e8f1ff;
+      }
+      .step-icon {
+        width: 20px;
+        text-align: center;
+        font-size: 18px;
+        color: #007bff;
+      }
+      .close-routing-btn {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        background: #ff4d4d;
+        color: white;
+        width: 24px;
+        height: 24px;
+        font-weight: bold;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 24px;
+        cursor: pointer;
+        z-index: 1100;
+      }
+      .close-routing-btn:hover {
+        background: #cc0000;
+      }
+
+      .leaflet-routing-geocoders input[type="text"] {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/" class="btn-back-text">← Quay lại trang chủ</a>
+    <div class="place-header">
+      <% if(place.image_url){ %>
+      <img src="<%= place.image_url %>" alt="<%= place.name %>" />
+      <% } %>
+      <div class="place-info">
+        <h1><%= place.name %></h1>
+        <p><strong>Địa chỉ:</strong> <%= place.address %></p>
+        <p><strong>Loại:</strong> <%= place.type %></p>
+        <% if(place.rating){ %>
+        <p><strong>Rating:</strong> <%= place.rating %> / 5</p>
+        <% } %>
+        <p><strong>Mô tả:</strong> <%= place.description %></p>
+        <button class="btn-route" id="btn-route">Gợi ý đường đi</button>
+      </div>
+    </div>
+    <div id="map"></div>
+    <div class="nearby-section">
+      <h3>Địa điểm gần đây</h3>
+      <div class="nearby-list" id="nearby-list"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+    <script>
+      // Lấy dữ liệu từ server (EJS)
+      const place = <%- JSON.stringify(place) %>;
+
+      // Khởi tạo bản đồ
+      const map = L.map('map').setView([place.geometry.coordinates[1], place.geometry.coordinates[0]], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Marker cho địa điểm
+      L.marker([place.geometry.coordinates[1], place.geometry.coordinates[0]]).addTo(map)
+        .bindPopup(`<b>${place.name}</b><br>${place.address}`)
+        .openPopup();
+
+      // Nearby places
+      fetch(`/places/${place.id}/nearby`).then(r => r.json()).then(data => {
+        const nearbyList = document.getElementById("nearby-list");
+        nearbyList.innerHTML = "";
+        data.nearby.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "nearby-card";
+          card.innerHTML = `<img src="${p.image_url || 'https://placehold.co/130x130/007bff/ffffff?text=Travel'}" alt="${p.name}"><div class="nearby-card-body"><a href="/places/${p.id}">${p.name}</a><small>${Math.round(p.distance)} m - ${p.type || 'Không có địa chỉ'}</small></div>`;
+          nearbyList.appendChild(card);
+          // Thêm marker cho các địa điểm lân cận
+          L.marker([p.geometry.coordinates[1], p.geometry.coordinates[0]]).addTo(map).bindPopup(`<b>${p.name}</b><br>${p.address || 'Không có địa chỉ'}`);
+        });
+      });
+
+      // Hàm dịch instruction sang tiếng Việt
+      function translateInstruction(text) {
+        // Step 1: Chuẩn hóa khoảng cách
+        text = text.replace(/([a-zA-Z])(\d+)(\s*m|\s*km)/g, (match, p1, p2, p3) => {
+            return p1 + ' ' + p2 + p3.trim();
+        });
+        text = text.replace(/(\d+)(\s*m|\s*km)([a-zA-Z])/g, (match, p1, p2, p3) => {
+            return p1 + p2.trim() + ' ' + p3;
+        });
+
+        // Step 2: Xử lý các cụm từ dài và phức tạp (ưu tiên)
+        text = text
+            .replace(/Enter the traffic circle and take the (\d+)(?:st|nd|rd|th) exit onto/gi, (match, p1) => {
+              return `Vào vòng xuyến và đi theo lối ra thứ ${p1} vào`;
+            })
+            .replace(/Make a sharp right/gi, "Rẽ gấp phải")
+            .replace(/Make a sharp left/gi, "Rẽ gấp trái")
+            .replace(/Make a slight right to stay on/gi, "Rẽ nhẹ phải để tiếp tục trên")
+            .replace(/Make a slight left to stay on/gi, "Rẽ nhẹ trái để tiếp tục trên")
+            .replace(/Continue straight to stay on/gi, "Đi thẳng tiếp trên")
+            .replace(/Keep right at the fork/gi, "Giữ bên phải tại ngã ba")
+            .replace(/Keep left at the fork/gi, "Giữ bên trái tại ngã ba")
+            .replace(/Merge left onto/gi, "Nhập làn trái vào")
+            .replace(/Merge right onto/gi, "Nhập làn phải vào")
+            .replace(/Take the ramp on the left/gi, "Đi vào đường nhánh bên trái")
+            .replace(/Take the ramp on the right/gi, "Đi vào đường nhánh bên phải")
+            .replace(/Take the ramp/gi, "Đi vào đường nhánh")
+            .replace(/Go straight/gi, "Đi thẳng")
+            .replace(/You have arrived at your destination/gi, "Bạn đã đến đích")
+            .replace(/At the end of the road/gi, "Ở cuối đường")
+            .replace(/Exit the traffic circle onto/gi, "Ra khỏi vòng xuyến vào")
+            .replace(/Exit the traffic circle/gi, "Ra khỏi vòng xuyến")
+            .replace(/Enter the traffic circle/gi, "Vào vòng xuyến");
+
+        // Step 3: Dịch các hướng chính (Head Direction)
+        text = text.replace(/Head (north|south|east|west|northeast|northwest|southeast|southwest)/gi, (match, p1) => {
+            const direction = p1.toLowerCase();
+            const map = {
+                'north': 'Bắc', 'south': 'Nam', 'east': 'Đông', 'west': 'Tây',
+                'northeast': 'Đông Bắc', 'northwest': 'Tây Bắc',
+                'southeast': 'Đông Nam', 'southwest': 'Tây Nam'
+            };
+            return `Đi về phía ${map[direction]}`;
+        });
+
+        // Step 4: Dịch các hành động/cụm từ còn lại
+        text = text
+          .replace(/Turn right onto/gi, "Rẽ phải vào")
+          .replace(/Turn left onto/gi, "Rẽ trái vào")
+          .replace(/Turn right/gi, "Rẽ phải")
+          .replace(/Turn left/gi, "Rẽ trái")
+          .replace(/Continue straight/gi, "Đi thẳng")
+          .replace(/Continue onto/gi, "Đi tiếp vào")
+          .replace(/Continue on/gi, "Tiếp tục trên")
+          .replace(/Make a slight right/gi, "Rẽ nhẹ phải")
+          .replace(/Make a slight left/gi, "Rẽ nhẹ trái")
+          .replace(/Keep right/gi, "Giữ bên phải")
+          .replace(/Keep left/gi, "Giữ bên trái")
+          .replace(/Arrive at/gi, "Đến")
+          .replace(/Destination/gi, "Điểm đến")
+          .replace(/Finish/gi, "Kết thúc")
+          .replace(/Exit/gi, "Lối ra")
+          .replace(/on the right/gi, "bên phải")
+          .replace(/on the left/gi, "bên trái")
+          .replace(/onto/gi, "vào");
+
+        // Step 5: Dịch các đơn vị
+        text = text
+            .replace(/km/gi, " km")
+            .replace(/m/gi, " m");
+
+        return text;
+      }
+
+      // Icon cho từng bước (dùng ký tự Unicode/Emoji)
+      function getStepIcon(text) {
+        text = text.toLowerCase();
+        if (text.includes("rẽ trái") || text.includes("nhẹ trái") || text.includes("giữ bên trái")) return "↰";
+        if (text.includes("rẽ phải") || text.includes("nhẹ phải") || text.includes("giữ bên phải")) return "↱";
+        if (text.includes("đi thẳng") || text.includes("tiếp tục")) return "↑";
+        if (text.includes("vòng xuyến")) return "⟳";
+        if (text.includes("đến đích") || text.includes("điểm đến") || text.includes("kết thúc")) return "🏁";
+        return "•"; // Mặc định
+      }
+
+      // Hàm dịch các text khác trong panel (tiêu đề, nút, nhãn thời gian/khoảng cách)
+      function translatePanel(container) {
+        if (!container) return; // Bảo vệ
+
+        // 1. Dịch tiêu đề chính "Instructions" và các nhãn tĩnh
+        container.querySelectorAll('h2').forEach(h2 => {
+            if (h2.textContent && h2.textContent.includes("Instructions")) {
+                h2.textContent = "Hướng Dẫn Đường Đi";
+            }
+        });
+
+        // 2. Dịch nhãn kéo thả và các chú thích khác
+        container.querySelectorAll('p').forEach(p => {
+            const text = p.textContent;
+            if (text) {
+                if (text.includes("Drag markers to change route")) {
+                    p.textContent = "Kéo các điểm để thay đổi lộ trình";
+                } else if (text.includes("Finding route...")) {
+                    p.textContent = "Đang tìm lộ trình...";
+                } else if (text.includes("Route not found.")) {
+                    p.textContent = "Không tìm thấy lộ trình.";
+                }
+            }
+        });
+
+        // 3. Dịch các nút và link ("Show/Hide alternatives")
+        container.querySelectorAll('a').forEach(el => {
+          const text = el.textContent ? el.textContent.trim() : null; // Kiểm tra null
+          if (text) {
+            if (text.includes('Show')) {
+                el.textContent = el.textContent.replace(/Show/gi, "Hiện");
+            }
+            if (text.includes('Hide')) {
+                el.textContent = el.textContent.replace(/Hide/gi, "Ẩn");
+            }
+            // Dịch từ "Alternative" (nếu có)
+            el.textContent = el.textContent.replace(/alternative/gi, "tuyến đường khác");
+          }
+        });
+      }
+
+      // Hàm dịch và tạo lại nội dung của từng bước hướng dẫn
+      function translateAndRenderInstructions(container, route) {
+        if (!container || !route) return; // Bảo vệ
+
+        // BƯỚC 1: Dịch nhãn tĩnh (tiêu đề, nhãn kéo thả, v.v.)
+        translatePanel(container);
+
+        // BƯỚC 2: Dịch summary (tổng khoảng cách và thời gian)
+        const summaryDiv = container.querySelector('.leaflet-routing-alt h3');
+        if (summaryDiv && route && route.summary) {
+            const distance = (route.summary.totalDistance / 1000).toFixed(1);
+            const timeInMinutes = Math.round(route.summary.totalTime / 60);
+
+            let timeStr = "";
+            const hours = Math.floor(timeInMinutes / 60);
+            const minutes = timeInMinutes % 60;
+
+            if (hours > 0) timeStr += `${hours} giờ `;
+            if (minutes > 0 || hours === 0) timeStr += `${minutes} phút`;
+
+            summaryDiv.textContent = `Tuyến đường: ${distance} km, ${timeStr.trim()}`;
+        }
+
+        // BƯỚC 3: Dịch từng instruction chi tiết và thêm icon
+        const instructions = container.querySelectorAll(".leaflet-routing-instruction");
+        instructions.forEach(step => {
+            const raw = step.textContent;
+            if (raw) { // Chỉ dịch nếu có nội dung
+                const translated = translateInstruction(raw);
+                const icon = getStepIcon(translated);
+                // Thay thế nội dung bằng icon và chuỗi đã dịch
+                step.innerHTML = `<span class="step-icon">${icon}</span><span>${translated}</span>`;
+            }
+        });
+      }
+
+      let routingControl;
+
+      document.getElementById("btn-route").addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          console.error("Trình duyệt không hỗ trợ định vị.");
+          return;
+        }
+
+        // Tắt nút để tránh click kép
+        const routeBtn = document.getElementById("btn-route");
+        routeBtn.disabled = true;
+        routeBtn.textContent = "Đang tìm vị trí...";
+
+
+        navigator.geolocation.getCurrentPosition(pos => {
+          const userLatLng = [pos.coords.latitude, pos.coords.longitude];
+
+          // Re-enable button
+          routeBtn.disabled = false;
+          routeBtn.textContent = "Gợi ý đường đi";
+
+          // Dọn dẹp routing control cũ
+          if (routingControl) {
+            map.removeControl(routingControl);
+            routingControl = null;
+          }
+
+          // Tạo routing control mới
+          routingControl = L.Routing.control({
+            waypoints: [
+              { latLng: L.latLng(userLatLng[0], userLatLng[1]), name: 'Vị trí hiện tại' },
+              { latLng: L.latLng(place.geometry.coordinates[1], place.geometry.coordinates[0]), name: place.name }
+            ],
+            routeWhileDragging: false,
+            showAlternatives: true,
+            createMarker: (i, wp) => L.marker(wp.latLng, { draggable: false }),
+            collapsible: true
+          }).addTo(map);
+
+          const container = routingControl.getContainer();
+
+          // Dịch nhãn tĩnh ban đầu (ví dụ: "Finding route...")
+          translatePanel(container);
+
+
+          // Sự kiện khi tìm được route
+          routingControl.on('routesfound', (e) => {
+
+            // THÊM NÚT ĐÓNG VÀO CONTAINER MỚI
+            if (!container.querySelector('.close-routing-btn')) {
+              const closeBtn = document.createElement("div");
+              closeBtn.className = 'close-routing-btn';
+              closeBtn.innerText = '×';
+              closeBtn.onclick = () => {
+                map.removeControl(routingControl);
+                routingControl = null;
+              };
+              container.appendChild(closeBtn);
+            }
+
+            // Sử dụng setTimeout (500ms) để chờ DOM hoàn tất render trước khi dịch
+            setTimeout(() => {
+                translateAndRenderInstructions(container, e.routes[0]);
+                console.log("Đã dịch hướng dẫn sau 500ms timeout.");
+            }, 500);
+          });
+
+          // Sự kiện khi không tìm thấy route (ví dụ: lỗi mạng, không có đường)
+          routingControl.on('routingerror', (e) => {
+              console.error("LỖI ĐỊNH TUYẾN: ", e.error);
+              // Dịch thông báo lỗi nếu có
+              translatePanel(container);
+          });
+
+        }, err => {
+          // Xử lý lỗi Geolocation (ví dụ: từ chối quyền)
+          routeBtn.disabled = false;
+          routeBtn.textContent = "Gợi ý đường đi";
+          console.error("Không thể lấy vị trí hiện tại. Vui lòng cấp quyền định vị cho trình duyệt: " + err.message);
+        });
+      });
+    </script>
+  </body>
+</html>

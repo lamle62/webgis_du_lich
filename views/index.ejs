@@ -1,33 +1,191 @@
 <!DOCTYPE html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebGIS Du lịch</title>
-  <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body class="home-index">
-  <!-- Top header moved from home -> show brand + auth buttons here -->
-  <div class="top-header">
-    <div class="top-header-inner container">
-      <div class="auth-actions">
-        <a href="/user/login" class="btn btn-primary">Đăng nhập</a>
-        <a href="/user/register" class="btn btn-ghost">Đăng ký</a>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trang chủ - WebGIS Du lịch Đà Nẵng</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+    <style>
+      /* Hero Banner */
+      .hero-banner {
+        position: relative;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto 40px auto; /* sát header hơn */
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      }
+      .hero-banner img {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        display: block;
+      }
+      .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.3);
+      }
+      .hero-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+      }
+      .hero-content h1 {
+        font-size: 48px;
+        margin-bottom: 10px;
+        color: #00aaff; /* chữ nổi bật tone xanh */
+        text-shadow: 1px 1px 6px rgba(0, 0, 0, 0.5);
+      }
+      .hero-content p {
+        font-size: 18px;
+        margin-bottom: 25px;
+        color: #fff;
+        text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+      }
+
+      /* Nút trong banner */
+      .btn-hero,
+      .btn-map {
+        padding: 12px 25px;
+        background: #00aaff;
+        color: #fff;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: 0.3s;
+        display: inline-block;
+        margin: 5px;
+      }
+      .btn-hero:hover,
+      .btn-map:hover {
+        background: #007bff;
+      }
+
+      /* Section Titles */
+      .section-title {
+        margin-top: 30px;
+        font-size: 24px;
+        color: #007bff;
+      }
+
+      /* Grid Lists */
+      .top-list,
+      .festival-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      /* Cards */
+      .place-card,
+      .festival-card {
+        display: block;
+        background: #fff;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s;
+      }
+      .place-card:hover,
+      .festival-card:hover {
+        transform: translateY(-3px);
+      }
+      .place-card img,
+      .festival-card img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+      }
+      .place-card-body,
+      .festival-card-body {
+        padding: 10px;
+      }
+      .place-card-body h3,
+      .festival-card-body h3 {
+        margin: 0;
+        font-size: 18px;
+        color: #007bff;
+      }
+      .place-card-body p,
+      .festival-card-body p {
+        margin: 4px 0;
+        color: #555;
+        font-size: 14px;
+      }
+
+      /* Nội dung cách navbar */
+      main {
+        padding-left: 240px; /* tương thích navbar dọc */
+        padding-top: 80px; /* header cố định */
+        padding-right: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header & Navbar -->
+    <%- include('partials/header') %> <%- include('partials/navbar') %>
+
+    <main>
+      <!-- Hero Banner -->
+      <div class="hero-banner">
+        <img src="/images/da-nang.jpg" alt="Khám phá Đà Nẵng" />
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <h1>Khám phá Đà Nẵng</h1>
+          <p>Những điểm đến tuyệt vời, lễ hội & trải nghiệm không thể bỏ lỡ!</p>
+
+          <!-- Hai nút: Khám phá + Xem bản đồ -->
+          <a href="#top-places" class="btn-hero">Khám phá ngay</a>
+          <a href="/map" class="btn-map">Xem bản đồ</a>
+        </div>
       </div>
 
-      <div class="brand" style="margin-left:12px;">
-        <div class="logo"></div>
-        <h1>Khám phá Việt Nam cùng WebGIS Du lịch</h1>
+      <!-- Top Places -->
+      <h2 class="section-title" id="top-places">Địa điểm nổi bật</h2>
+      <div class="top-list">
+        <% topPlaces.forEach(place => { %>
+        <a href="/places/<%= place.id %>" class="place-card">
+          <img
+            src="<%= place.image_url || '/images/default.jpg' %>"
+            alt="<%= place.name %>"
+          />
+          <div class="place-card-body">
+            <h3><%= place.name %></h3>
+            <p><%= place.type %> - <%= place.province %></p>
+          </div>
+        </a>
+        <% }) %>
       </div>
-    </div>
-  </div>
 
-  <div class="hero-full">
-    <iframe
-      src="https://www.youtube.com/embed/MVrwPSTW5Vo"
-      title="Video quảng bá du lịch Việt Nam"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen></iframe>
-  </div>
-</body>
+      <!-- Festivals -->
+      <h2 class="section-title">Lễ hội & sự kiện nổi bật</h2>
+      <div class="festival-list">
+        <% festivals.forEach(f => { %>
+        <a href="/festivals/<%= f.id %>" class="festival-card">
+          <img
+            src="<%= f.image_url || '/images/festival.jpg' %>"
+            alt="<%= f.name %>"
+          />
+          <div class="festival-card-body">
+            <h3><%= f.name %></h3>
+            <p><%= f.date %> - <%= f.address || 'Đà Nẵng' %></p>
+            <p>Vé: <%= f.ticket_price || 'Miễn phí' %></p>
+            <p><%= f.description || '' %></p>
+          </div>
+        </a>
+        <% }) %>
+      </div>
+    </main>
+  </body>
 </html>
