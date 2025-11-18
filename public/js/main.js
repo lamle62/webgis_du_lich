@@ -145,10 +145,6 @@ async function loadPlacesData() {
               style="font-size:0.85em;padding:4px 8px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">
         Chọn
       </button>
-      <button onclick="drawRouteToPlace(${lat}, ${lng})"
-              style="font-size:0.85em;padding:4px 8px;background:#555;color:white;border:none;border-radius:4px;cursor:pointer;margin-left:4px;">
-        Xem tuyến
-      </button>
       <button onclick="window.location.href='/places/${p.id}'"
               style="font-size:0.85em;padding:4px 8px;background:#28a745;color:white;border:none;border-radius:4px;cursor:pointer;margin-left:4px;">
         Xem chi tiết
@@ -310,10 +306,6 @@ window.filterPlaces = function () {
       )}')"
                     style="font-size:0.85em;padding:4px 8px;background:var(--primary);color:white;border:none;border-radius:4px;cursor:pointer;">
               Chọn
-            </button>
-            <button onclick="drawRouteToPlace(${lat}, ${lng})"
-                    style="font-size:0.85em;padding:4px 8px;background:#555;color:white;border:none;border-radius:4px;cursor:pointer;margin-left:4px;">
-              Xem tuyến
             </button>
             <button onclick="window.location.href='/places/${p.id}'"
           style="font-size:0.85em;padding:4px 8px;background:#2a9df4;color:white;border:none;border-radius:4px;cursor:pointer;margin-left:4px;">

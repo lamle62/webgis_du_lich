@@ -11,7 +11,8 @@ Place.getById = async (id) => {
       `
       SELECT id, name, type, province, image_url,
              address, description, rating, price, parking,
-             ST_AsGeoJSON(geom)::json AS geometry
+             ST_AsGeoJSON(geom)::json AS geometry,
+             COALESCE(views,0) AS views
       FROM places
       WHERE id = $1
       LIMIT 1
@@ -132,7 +133,8 @@ Place.getAll = async () => {
     const result = await pool.query(`
       SELECT id, name, type, province, image_url,
              address, description, rating, price, parking,
-             ST_AsGeoJSON(geom)::json AS geometry
+             ST_AsGeoJSON(geom)::json AS geometry,
+             COALESCE(views,0) AS views
       FROM places
       ORDER BY id ASC
     `);
@@ -151,7 +153,8 @@ Place.getGeoJSON = async () => {
     const result = await pool.query(`
       SELECT id, name, type, province,
              address, description, rating, price, parking,
-             ST_AsGeoJSON(geom)::json AS geometry
+             ST_AsGeoJSON(geom)::json AS geometry,
+             COALESCE(views,0) AS views
       FROM places
     `);
 
@@ -170,6 +173,7 @@ Place.getGeoJSON = async () => {
           rating: r.rating,
           price: r.price,
           parking: r.parking,
+          views: r.views,
         },
       })),
     };
@@ -177,6 +181,21 @@ Place.getGeoJSON = async () => {
     return geojson;
   } catch (error) {
     console.error("❌ Error getGeoJSON:", error);
+    throw error;
+  }
+};
+
+// ==========================
+// ⭐ 6. Tăng views +1 khi xem chi tiết
+// ==========================
+Place.incrementViews = async (id) => {
+  try {
+    await pool.query(
+      `UPDATE places SET views = COALESCE(views,0) + 1 WHERE id = $1`,
+      [id]
+    );
+  } catch (error) {
+    console.error("❌ Error incrementViews:", error);
     throw error;
   }
 };

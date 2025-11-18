@@ -53,7 +53,7 @@ const placeController = {
     }
   },
 
-  // ⭐ 4. TRANG CHI TIẾT
+  // ⭐ 4. TRANG CHI TIẾT + Tăng view
   getDetail: async (req, res) => {
     try {
       const id = req.params.id;
@@ -64,8 +64,14 @@ const placeController = {
           .status(404)
           .render("404", { message: "Không tìm thấy địa điểm" });
       }
+
+      // 🔹 Tăng views +1
+      await Place.incrementViews(id);
+
+      // đảm bảo có ảnh
       place.image_url = place.image_url || "/images/default-place.png";
-      res.render("place-detail", { place });
+
+      res.render("place-detail", { place, user: req.session.user || null });
     } catch (err) {
       console.error("Lỗi chi tiết:", err);
       res.status(500).json({ error: "Lỗi server" });

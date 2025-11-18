@@ -1,6 +1,6 @@
 <% layout('admin/layout') %>
 
-<h2>Top 10 địa điểm được truy cập nhiều</h2>
+<h2>Top 5 địa điểm được truy cập nhiều</h2>
 
 <table class="admin-table">
   <thead>
@@ -11,7 +11,7 @@
     </tr>
   </thead>
   <tbody>
-    <% topPlaces.forEach(p => { %>
+    <% topPlaces.slice(0, 5).forEach(p => { %>
     <tr>
       <td><%= p.id %></td>
       <td><%= p.name %></td>
@@ -20,3 +20,53 @@
     <% }) %>
   </tbody>
 </table>
+
+<!-- ===========================
+     BIỂU ĐỒ
+=========================== -->
+<div class="chart-container">
+  <div class="chart-title">Biểu đồ lượt xem Top 5 địa điểm</div>
+
+  <canvas id="viewsChart"></canvas>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  // Lấy dữ liệu từ server (top 5)
+  const placeNames = <%- JSON.stringify(topPlaces.slice(0, 5).map(p => p.name)) %>;
+  const placeViews = <%- JSON.stringify(topPlaces.slice(0, 5).map(p => p.views)) %>;
+
+  const ctx = document.getElementById('viewsChart').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: placeNames,
+      datasets: [{
+        label: 'Lượt xem',
+        data: placeViews,
+        backgroundColor: [
+          'rgba(29, 78, 216, 0.7)',
+          'rgba(37, 99, 235, 0.7)',
+          'rgba(59, 130, 246, 0.7)',
+          'rgba(96, 165, 250, 0.7)',
+          'rgba(147, 197, 253, 0.7)',
+        ],
+        borderColor: 'rgba(29, 78, 216, 1)',
+        borderWidth: 2,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1 }
+        }
+      }
+    }
+  });
+</script>

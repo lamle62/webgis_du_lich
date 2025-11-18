@@ -55,7 +55,7 @@ router.post(
     try {
       await pool.query(
         `INSERT INTO places (name, type, province, description, address, geom, image_url, views)
-       VALUES ($1,$2,$3,$4,$5,ST_SetSRID(ST_MakePoint($6,$7),4326),$8,0)`,
+         VALUES ($1,$2,$3,$4,$5,ST_SetSRID(ST_MakePoint($6,$7),4326),$8,0)`,
         [name, type, province, description, address, lng, lat, image_url]
       );
       res.redirect("/admin/dashboard");
@@ -103,9 +103,9 @@ router.post(
     try {
       await pool.query(
         `UPDATE places 
-       SET name=$1,type=$2,province=$3,description=$4,address=$5,
-           geom=ST_SetSRID(ST_MakePoint($6,$7),4326),image_url=$8
-       WHERE id=$9`,
+         SET name=$1,type=$2,province=$3,description=$4,address=$5,
+             geom=ST_SetSRID(ST_MakePoint($6,$7),4326),image_url=$8
+         WHERE id=$9`,
         [
           name,
           type,
@@ -142,23 +142,34 @@ router.get(
   }
 );
 
-// ====== Thống kê top địa điểm ======
+// ====== Thống kê top 5 địa điểm ======
 router.get("/stats", isLoggedIn, requireRole("admin"), async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT id, name, views
-      FROM places
-      ORDER BY views DESC
-      LIMIT 10
-    `);
+    // Top 5 địa điểm theo views
+    const topPlaces = await pool.query(`
+  SELECT id, name, views
+  FROM places
+  ORDER BY views DESC
+  LIMIT 5;
+`);
+
+    // Tổng lượt truy cập theo type
+    const visitsByType = await pool.query(`
+  SELECT type, SUM(views) AS total
+  FROM places
+  GROUP BY type
+  ORDER BY total DESC;
+`);
+
     res.render("admin/stats", {
       user: req.session.user,
-      topPlaces: result.rows,
+      topPlaces: topPlaces.rows,
+      visitsByType: visitsByType.rows,
       title: "Thống kê địa điểm",
     });
   } catch (err) {
     console.error(err);
-    res.send("Lỗi khi tải thống kê");
+    res.status(500).send("Lỗi thống kê");
   }
 });
 
