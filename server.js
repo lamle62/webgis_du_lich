@@ -35,7 +35,7 @@ app.use(
     saveUninitialized: true,
     store: new MemoryStore({ checkPeriod: 86400000 }),
     cookie: { maxAge: 86400000 },
-  })
+  }),
 );
 
 // -------------------- Biến toàn cục cho view --------------------
@@ -83,28 +83,37 @@ app.get("/home", async (req, res) => {
 
 // -------------------- Trang map --------------------
 app.get("/map", async (req, res) => {
-  if (!req.session.user) return res.redirect("/user/login");
-
   try {
+    // 1️⃣ Lấy danh sách địa điểm (ai cũng xem được)
     const placesResult = await pool.query(`
-      SELECT id, name, type, province, description, ST_AsGeoJSON(geom)::json AS geometry, address, image_url
-      FROM places ORDER BY id ASC
+      SELECT id, name, type, province, description,
+             ST_AsGeoJSON(geom)::json AS geometry,
+             address, image_url
+      FROM places
+      ORDER BY id ASC
     `);
 
-    const Itinerary = require("./models/itineraryModel");
-    const itineraries = await Itinerary.getAllByUser(req.session.user.id);
+    let itineraries = [];
 
+    // 2️⃣ CHỈ lấy itineraries nếu đã đăng nhập
+    if (req.session.user) {
+      const Itinerary = require("./models/itineraryModel");
+      itineraries = await Itinerary.getAllByUser(req.session.user.id);
+    }
+
+    // 3️⃣ Render map cho cả khách và user
     res.render("map", {
-      user: req.session.user,
+      user: req.session.user || null, // 👈 rất quan trọng
       page: "map",
       places: placesResult.rows,
-      itineraries,
+      itineraries, // khách sẽ là []
       error: null,
     });
   } catch (err) {
     console.error("Error loading /map:", err.message);
+
     res.render("map", {
-      user: req.session.user,
+      user: req.session.user || null,
       page: "map",
       places: [],
       itineraries: [],
@@ -158,7 +167,7 @@ app.get("/festivals/:id", async (req, res) => {
     const result = await pool.query(
       `SELECT id, name, date_text, event_location, description, image_url, ticket_price
        FROM festivals WHERE id = $1`,
-      [id]
+      [id],
     );
 
     if (result.rows.length === 0)

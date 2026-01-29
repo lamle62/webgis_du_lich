@@ -53,27 +53,40 @@ const placeController = {
     }
   },
 
-  // ⭐ 4. TRANG CHI TIẾT + Tăng view
+  // ⭐ 4. TRANG CHI TIẾT + Tăng view + LẤY ẢNH SLIDER
   getDetail: async (req, res) => {
     try {
       const id = req.params.id;
-      const place = await Place.getById(id);
 
+      // 1️⃣ Lấy thông tin địa điểm
+      const place = await Place.getById(id);
       if (!place) {
-        return res
-          .status(404)
-          .render("404", { message: "Không tìm thấy địa điểm" });
+        return res.status(404).render("404", {
+          message: "Không tìm thấy địa điểm",
+        });
       }
 
-      // 🔹 Tăng views +1
+      // 2️⃣ 🔥 TĂNG LƯỢT XEM (GIỮ NGUYÊN YÊU CẦU CỦA BẠN)
       await Place.incrementViews(id);
 
-      // đảm bảo có ảnh
+      // 3️⃣ Ảnh mặc định nếu không có
       place.image_url = place.image_url || "/images/default-place.png";
 
-      res.render("place-detail", { place, user: req.session.user || null });
+      // 4️⃣ LẤY DANH SÁCH ẢNH CHO SLIDER
+      const pool = require("../models/db");
+      const imagesResult = await pool.query(
+        `SELECT image_url FROM place_images WHERE place_id = $1 ORDER BY id ASC`,
+        [id],
+      );
+
+      // 5️⃣ Render sang EJS
+      res.render("place-detail", {
+        place,
+        images: imagesResult.rows, // 👈 CÁI TRƯỚC ĐÓ BỊ THIẾU
+        user: req.session.user || null,
+      });
     } catch (err) {
-      console.error("Lỗi chi tiết:", err);
+      console.error("Lỗi chi tiết địa điểm:", err);
       res.status(500).json({ error: "Lỗi server" });
     }
   },
